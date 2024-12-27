@@ -1,5 +1,4 @@
 #include "twc.h"
-#include <stdio.h>
 
 int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip) {
     unsigned char num_rec = 0; /* Used to record the two allowed numerical options */

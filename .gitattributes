@@ -1,0 +1,7 @@
+*.c linguist-language=C
+test/*.c linguist-language=C
+test/unity/*.c linguist-language=C
+
+*.h linguist-language=C
+test/*.h linguist-language=C
+test/unity/*.h linguist-language=C
