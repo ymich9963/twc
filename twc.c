@@ -1,3 +1,11 @@
+/*
+    twc : Trace Width Calculator.
+    Copyright (C) 2024 Yiannis Michael (ymich9963)
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "twc.h"
 
 int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip) {
@@ -26,7 +34,7 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip) {
             return 1;
         }
         if (!(strcmp("-o", argv[i])) || !(strcmp("--output", argv[i]))) {
-            ip->ofile.oflag = true;
+            ip->ofile.oflag = 1;
             set_output_file(&ip->ofile, argv[i + 1]);
             i++;
             continue;
@@ -425,11 +433,11 @@ int get_standard_method(int* restrict argc, char** restrict argv, ip_t* restrict
 }
 
 int check_standard(char* restrict strval, const char** standard_arr, unsigned int size, unsigned char* restrict index) {
-    bool okflag = false;
+    uint8_t okflag = 0;
     for(int i = 0; i < size; i++) {
         if(!(strcmp(strval, standard_arr[i]))) {
             *index = i;
-            okflag = true;
+            okflag = 1;
             break;
         }
     }
@@ -444,10 +452,10 @@ int check_standard(char* restrict strval, const char** standard_arr, unsigned in
 }
 
 int check_method(char chrval, const char* restrict method_arr, unsigned int size){
-    bool okflag = false;
+    uint8_t okflag = 0;
     for(int i = 0; i < size; i++) {
         if(chrval == method_arr[i]) {
-            okflag = true;
+            okflag = 1;
             break;
         }
     }
