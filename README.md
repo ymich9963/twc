@@ -7,6 +7,12 @@
 
 A calculator tool used to assist designing rigid PCB traces. Implements both the IPC2221 and IPC2152 standards and has the ability to choose between the two, with the latter having two methods available for the outputs. Each method used for the standards was derived from one of the various websites that claim to implement a trace width calculator. The initial purpose of this tool was to collect the available methods for calculating trace widths and to have them all in one place. Any improvements please let me know!
 
+## Features
+- Two methods for calculating trace widths in rigid PCBs, listed in the next section.
+- Change units for any input and change the output units from imperial to metric.
+- Convert any value used in the tool with the conversion functions (use `--help` to list them).
+- Output the results to a file for saving.
+
 ## Methods
 One method is implemented for IPC2221 and two methods for IPC2152. The tool defaults to the IPC2152 standard, Method A.
 
