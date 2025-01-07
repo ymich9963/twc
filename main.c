@@ -14,64 +14,66 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 #include "twc.h"
 
-int main(int argc, char** argv) {
-    /* Inputs */
-    ip_t ip;
+int main(int argc, char** argv)
+{
+	/* Inputs */
+	ip_t ip;
 
-    /* Outputs */
-    op_t op;
+	/* Outputs */
+	op_t op;
 
-    /* Output stream */
-    FILE * file = stdout;
+	/* Output stream */
+	FILE* file = stdout;
 
-    /* Universal Defaults */
-    ip.standard.num = IPC2152;
-    ip.method = 'A';
-    ip.uflag = 'i';
-    ip.resistivity.val = 1.724e-6;
-    ip.a.val = 3.93e-3;
-    ip.ofile.oflag = 0;
+	/* Universal Defaults */
+	ip.standard.num = IPC2152;
+	ip.method = 'A';
+	ip.uflag = 'i';
+	ip.resistivity.val = 1.724e-6;
+	ip.a.val = 3.93e-3;
+	ip.ofile.oflag = 0;
 
-    /* Get the standard and the method for the calculations */
-    CHECK_ERR(get_standard_method(&argc, argv, &ip));
+	/* Get the standard and the method for the calculations */
+	CHECK_ERR(get_standard_method(&argc, argv, &ip));
 
-    /* Set functions based on the inputs */
-    CHECK_ERR(sel_functions(&ip));
+	/* Set functions based on the inputs */
+	CHECK_ERR(sel_functions(&ip));
 
-    /* Set defaults */
-    ip.defv(&ip);
+	/* Set defaults */
+	ip.defv(&ip);
 
-    /* Get the inputs and options */
-    CHECK_ERR(get_options(&argc, argv, &ip));
+	/* Get the inputs and options */
+	CHECK_ERR(get_options(&argc, argv, &ip));
 
-    /* Calculate the values */
-    ip.proc(&ip, &op);
+	/* Calculate the values */
+	ip.proc(&ip, &op);
 
-    /* Set output units */
-    ip.outu(&ip, &op);
+	/* Set output units */
+	ip.outu(&ip, &op);
 
-    /* Open file to save outputs */
-    if(ip.ofile.oflag) {
-        file = fopen(ip.ofile.dest, "w");
-        if (!(file)) {
-            fprintf(stderr, "\nFile not able to be saved, check input. Directory may not exist.\n\n");
-            exit(EXIT_FAILURE);
-        }
-    }
+	/* Open file to save outputs */
+	if (ip.ofile.oflag) {
+		file = fopen(ip.ofile.dest, "w");
 
-    /* Output the results to the buffer */
-    ip.outp(&ip, &op, file);
+		if (!(file)) {
+			fprintf(stderr, "\nFile not able to be saved, check input. Directory may not exist.\n\n");
+			exit(EXIT_FAILURE);
+		}
+	}
 
-    /* Close file and free memory */
-    if (file != stdout) {
-        fclose(file);
-        printf("\nContents exported to %s\n\n", ip.ofile.dest);
-    }
+	/* Output the results to the buffer */
+	ip.outp(&ip, &op, file);
 
-    /* Program done. exit succesfully */
-    exit(EXIT_SUCCESS);
+	/* Close file and free memory */
+	if (file != stdout) {
+		fclose(file);
+		printf("\nContents exported to %s\n\n", ip.ofile.dest);
+	}
+
+	/* Program done. exit succesfully */
+	exit(EXIT_SUCCESS);
 }

@@ -4,7 +4,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
 #include <stdlib.h>
 #include <limits.h>
@@ -16,150 +16,154 @@
 #include <time.h>
 
 /* Constants */
-#define k_INT           0.024f
-#define k_EXT           0.048f
-#define VAL_MAX         999999999.999999999f
-#define VAL_MIN         0.0f
-#define STD_NAME_LEN    8
-#define OUT_FILE_LEN    30
-#define DEST_LEN        100
-#define PATH_LEN        DEST_LEN - OUT_FILE_LEN
-#define WELCOME_STR     "\nTrace Width Calculator, Made by Yiannis Michael (2024). \n\nPlease 'type twc.exe <Current [A]> <Copper Weight [oz/ft^2]>' to get output results. Use '--help' for explanation of the flags and more advanced usage, for different units, optional inputs, etc.\n\nThis tool should only be used to assist design decisions and not be used to replace professional advice. Developer(s) have no liability whatsoever.\n\n" "This program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n"
-#define FEW_ARGS_STR    "\nAn input of at least Current [A] and Copper Weight [oz/ft^2] is required. Use no arguments to get the welcome message and either '-h' or '--help' to get the list of commands.\n"
-#define VERSION_STR     "\nTrace Width Calculator (TWC)\nVersion 1.0.6\n"
-#define DISCLAIMER_STR  "\nDesign assistance by the TWC tool is provided with no liability whatsover. For final decisions on electronics designs, please consult an actual qualified person.\n"
+#define	k_INT 0.024f
+#define	k_EXT 0.048f
+#define	VAL_MAX 999999999.999999999f
+#define	VAL_MIN 0.0f
+#define	STD_NAME_LEN 8
+#define	OUT_FILE_LEN 30
+#define	DEST_LEN 100
+#define	PATH_LEN DEST_LEN - OUT_FILE_LEN
+#define	WELCOME_STR "\nTrace Width Calculator, Made by Yiannis Michael (2024). \n\nPlease 'type twc.exe <Current [A]> <Copper Weight [oz/ft^2]>' to get output results. Use '--help' for explanation of the flags and more advanced usage, for different units, optional inputs, etc.\n\nThis tool should only be used to assist design decisions and not be used to replace professional advice. Developer(s) have no liability whatsoever.\n\n" "This program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n"
+#define	FEW_ARGS_STR "\nAn input of at least Current [A] and Copper Weight [oz/ft^2] is required. Use no arguments to get the welcome message and either '-h' or '--help' to get the list of commands.\n"
+#define	VERSION_STR "\nTrace Width Calculator (TWC)\nVersion 1.0.6\n"
+#define	DISCLAIMER_STR "\nDesign assistance by the TWC tool is provided with no liability whatsover. For final decisions on electronics designs, please consult an actual qualified person.\n"
 
 /* Conversion macros */
-#define CONV_MIL2_TO_CM2(x)    ((x) * 0.00254 * 0.00254)
-#define CONV_MIL2_TO_MM2(x)    ((x) * 0.0254 * 0.0254)
-#define CONV_MM2_TO_MIL2(x)    ((x) / 0.0254 / 0.0254)
-#define CONV_CM2_TO_INCH2(x)   ((x) / (2.54 * 2.54))
-#define CONV_MIL_TO_OZFT2(x)   ((x) / 1.378) // most sources say 1.37, few others say 1.378.
-#define CONV_MM_TO_OZFT2(x)    ((x) * 39.37007874 / 1.378)
-#define CONV_UM_TO_OZFT2(x)    ((x) * 39.37007874 / 1.378 * 1e-3)
-#define CONV_OZFT2_TO_MIL(x)   ((x) * 1.378)
-#define CONV_OZFT2_TO_MM(x)    ((x) * 1.378 * 0.0254) 
-#define CONV_OZFT2_TO_UM(x)    ((x) * 1.378 * 0.0254 * 1e3) 
-#define CONV_MM_TO_MIL(x)      ((x) * 39.37007874)
-#define CONV_MIL_TO_MM(x)      ((x) * 0.0254)
-#define CONV_FAHR_TO_CELS(x)   (((x) - 32) / 1.8)
-#define CONV_CELS_TO_FAHR(x)   (((x) * 1.8) + 32)
-#define CONV_WmK_TO_BTUhftF(x) ((x) / 1.730735)
-#define CONV_BTUhftF_TO_WmK(x) ((x) * 1.730735)
+#define	CONV_MIL2_TO_CM2(x) ((x) * 0.00254 * 0.00254)
+#define	CONV_MIL2_TO_MM2(x) ((x) * 0.0254 * 0.0254)
+#define	CONV_MM2_TO_MIL2(x) ((x) / 0.0254 / 0.0254)
+#define	CONV_CM2_TO_INCH2(x) ((x) / (2.54 * 2.54))
+#define	CONV_MIL_TO_OZFT2(x) ((x) / 1.378)   // most sources say 1.37, few others say 1.378.
+#define	CONV_MM_TO_OZFT2(x) ((x) * 39.37007874 / 1.378)
+#define	CONV_UM_TO_OZFT2(x) ((x) * 39.37007874 / 1.378 * 1e-3)
+#define	CONV_OZFT2_TO_MIL(x) ((x) * 1.378)
+#define	CONV_OZFT2_TO_MM(x) ((x) * 1.378 * 0.0254)
+#define	CONV_OZFT2_TO_UM(x) ((x) * 1.378 * 0.0254 * 1e3)
+#define	CONV_MM_TO_MIL(x) ((x) * 39.37007874)
+#define	CONV_MIL_TO_MM(x) ((x) * 0.0254)
+#define	CONV_FAHR_TO_CELS(x) (((x) - 32) / 1.8)
+#define	CONV_CELS_TO_FAHR(x) (((x) * 1.8) + 32)
+#define	CONV_WmK_TO_BTUhftF(x) ((x) / 1.730735)
+#define	CONV_BTUhftF_TO_WmK(x) ((x) * 1.730735)
 
 /* Check macros */
 
 /* Check response from sscanf */
-#define CHECK_RES(x)        ({ if (!(x)) { \
-        fprintf(stderr, "Argument entered was wrong...\n"); \
-        return 1; \
-        } }) 
+#define	CHECK_RES(x) ({ if (!(x)) { \
+							fprintf(stderr, "Argument entered was wrong...\n"); \
+							return 1; \
+						} \
+					  })
 
 /* Check if value is between numerical limits */
-#define CHECK_LIMITS(x)     ({ if ((x) > VAL_MAX || (x) < VAL_MIN) { \
-        fprintf(stderr, "Detected numbers out of range. Please check inputs and enter numbers between, \n%.15lf and %.15lf", VAL_MIN, VAL_MAX); \
-        return 1; \
-        } }) 
+#define	CHECK_LIMITS(x) ({ if ((x) > VAL_MAX || (x) < VAL_MIN) { \
+							   fprintf(stderr, "Detected numbers out of range. Please check inputs and enter numbers between, \n%.15lf and %.15lf", VAL_MIN, VAL_MAX); \
+							   return 1; \
+						   } \
+						 })
 
 /* Check if an error occured to exit program */
-#define CHECK_ERR(x)        ({ if ((x)) { \
-        exit(EXIT_FAILURE); \
-        } }) 
+#define	CHECK_ERR(x) ({ if ((x)) { \
+							exit(EXIT_FAILURE); \
+						} \
+					  })
 
 /* Check if a function returns failure */
-#define CHECK_RET(x)        ({ if ((x)) { \
-        return 1; \
-        } }) 
+#define	CHECK_RET(x) ({ if ((x)) { \
+							return 1; \
+						} \
+					  })
 
 typedef struct Dbl {
-    double val;
-    double outval;
-    char* units;
-}dbl_t; /* Struct for inputs of type double */
+	double val;
+	double outval;
+	char* units;
+} dbl_t; /* Struct for inputs of type double */
 
 typedef struct Std {
-    char str[STD_NAME_LEN];
-    uint16_t num;
-}std_t; /* Struct for the standards */
+	char str[STD_NAME_LEN];
+	uint16_t num;
+} std_t; /* Struct for the standards */
 
-typedef struct Layer{
-    dbl_t trace_width;         // [mils]
-    dbl_t resistance;          // [Ohms]
-    dbl_t voltage_drop;        // [V]
-    dbl_t power_loss;          // [W]
-    dbl_t trace_temperature;   // [Celsius]
-    dbl_t cs_area;             // [mils^2]
-    dbl_t corr_cs_area;        // [mils^2]
-    dbl_t corr_trace_width;    // [mils]
-}layer_t; /* Outputs Structures */
+typedef struct Layer {
+	dbl_t trace_width;         // [mils]
+	dbl_t resistance;          // [Ohms]
+	dbl_t voltage_drop;        // [V]
+	dbl_t power_loss;          // [W]
+	dbl_t trace_temperature;   // [Celsius]
+	dbl_t cs_area;             // [mils^2]
+	dbl_t corr_cs_area;        // [mils^2]
+	dbl_t corr_trace_width;    // [mils]
+} layer_t; /* Outputs Structures */
 
 typedef layer_t extl_t;
 typedef layer_t intl_t;
 
-typedef struct OFile{
-    char fname[OUT_FILE_LEN];
-    char path[PATH_LEN - OUT_FILE_LEN]; 
-    char dest[PATH_LEN];
-    uint8_t oflag;                // Output file flag
-}ofile_t; /* Output file strcture */
+typedef struct OFile {
+	char fname[OUT_FILE_LEN];
+	char path[PATH_LEN - OUT_FILE_LEN];
+	char dest[PATH_LEN];
+	uint8_t oflag;                // Output file flag
+} ofile_t; /* Output file strcture */
 
-typedef struct OP{
-    intl_t intl;
-    extl_t extl;
-    layer_t layer;
-}op_t; /* Output layer struct */
+typedef struct OP {
+	intl_t intl;
+	extl_t extl;
+	layer_t layer;
+} op_t; /* Output layer struct */
 
 typedef struct CF {
-    double copper_weight;
-    double pcb_thickness;
-    double plane_area;
-    double plane_distance;
-    double temperature_rise;
-    double pcb_thermal_cond;     
-}cf_t; /* Correction Factors Struct */
+	double copper_weight;
+	double pcb_thickness;
+	double plane_area;
+	double plane_distance;
+	double temperature_rise;
+	double pcb_thermal_cond;
+} cf_t; /* Correction Factors Struct */
 
 typedef struct IP ip_t;
 
 /* Input Structure */
-typedef struct IP{
-    /* Mandatory Inputs */
-    dbl_t current;             // [A]
-    dbl_t copper_weight;       // [oz/ft^2]
+typedef struct IP {
+	/* Mandatory Inputs */
+	dbl_t current;             // [A]
+	dbl_t copper_weight;       // [oz/ft^2]
 
-    /* Optional Inputs */
-    std_t standard;             // IPC standard
-    char method;                // Method to use for calculations
-    dbl_t temperature_rise;     // [Celsius]
-    dbl_t temperature_ambient;  // [Celsius]
-    dbl_t trace_length;         // [cm]
-    dbl_t resistivity;          // [Ohm*cm]
-    dbl_t pcb_thickness;        // [mm]
-    dbl_t pcb_thermal_cond;     // [W/mK]
-    dbl_t plane_area;           // [in^2] 
-    dbl_t plane_distance;       // [mils] 
-    dbl_t a;                    // [1/C] :resistivity temperature coefficient
-    cf_t cf;                    // Correction Factors   
-    ofile_t ofile;              // Output file properties
-    char uflag;                 // Units flag
-    void (*defv)(ip_t*);        // Set default values 
-    void (*proc)(ip_t*, op_t*); // Calculation procedure
-    int (*outp)(ip_t*, op_t*, FILE *file); // Output function
-    int (*outu)(ip_t*, op_t*);  // Set output units 
-}ip_t;
+	/* Optional Inputs */
+	std_t standard;             // IPC standard
+	char method;                // Method to use for calculations
+	dbl_t temperature_rise;     // [Celsius]
+	dbl_t temperature_ambient;  // [Celsius]
+	dbl_t trace_length;         // [cm]
+	dbl_t resistivity;          // [Ohm*cm]
+	dbl_t pcb_thickness;        // [mm]
+	dbl_t pcb_thermal_cond;     // [W/mK]
+	dbl_t plane_area;           // [in^2]
+	dbl_t plane_distance;       // [mils]
+	dbl_t a;                    // [1/C] :resistivity temperature coefficient
+	cf_t cf;                    // Correction Factors
+	ofile_t ofile;              // Output file properties
+	char uflag;                 // Units flag
+	void (*defv)(ip_t*);        // Set default values
+	void (*proc)(ip_t*, op_t*); // Calculation procedure
+	int (*outp)(ip_t*, op_t*, FILE* file); // Output function
+	int (*outu)(ip_t*, op_t*);  // Set output units
+} ip_t;
 
 enum {
-    IPC2152 = 2152,
-    IPC2221 = 2221,
+	IPC2152 = 2152,
+	IPC2221 = 2221,
 }; /* Standards Enumeration */
 
 /**
- * @brief Get the options and arguments provided. 
+ * @brief Get the options and arguments provided.
  *
  * @param argc Argument count.
  * @param argv Argument vector.
  * @param ip Input struct to store the inputs.
  *
- * @return Success or failure. 
+ * @return Success or failure.
  */
 int get_options(int* argc, char** argv, ip_t* ip);
 
@@ -215,7 +219,7 @@ void set_defv_IPC2152_B(ip_t* ip);
  * @param ip Input struct to store the inputs.
  * @param op Output struct to store the outputs.
  *
- * @return Success or failure. 
+ * @return Success or failure.
  */
 int set_outu_IPC2221(ip_t* ip, op_t* op);
 
@@ -225,7 +229,7 @@ int set_outu_IPC2221(ip_t* ip, op_t* op);
  * @param ip Input struct to store the inputs.
  * @param op Output struct to store the outputs.
  *
- * @return Success or failure. 
+ * @return Success or failure.
  */
 int set_outu_IPC2152(ip_t* ip, op_t* op);
 
@@ -236,7 +240,7 @@ int set_outu_IPC2152(ip_t* ip, op_t* op);
  * @param argv Argument vector.
  * @param ip Input struct to store the inputs.
  *
- * @return Success or failure. 
+ * @return Success or failure.
  */
 int get_standard_method(int* argc, char** argv, ip_t* ip);
 
@@ -248,7 +252,7 @@ int get_standard_method(int* argc, char** argv, ip_t* ip);
  * @param size Size of the array.
  * @param index Index when the string value matches an entry in the array.
  *
- * @return Success or failure. 
+ * @return Success or failure.
  */
 int check_standard(char* strval, const char** standard_arr, const unsigned int size, unsigned char* index);
 
@@ -259,7 +263,7 @@ int check_standard(char* strval, const char** standard_arr, const unsigned int s
  * @param method_arr Array containing the method characters.
  * @param size Size of the array.
  *
- * @return Success or failure. 
+ * @return Success or failure.
  */
 int check_method(char chrval, const char* method_arr, unsigned int size);
 
@@ -268,7 +272,7 @@ int check_method(char chrval, const char* method_arr, unsigned int size);
  *
  * @param ip Input struct to check the method and the standard.
  *
- * @return Success or failure. 
+ * @return Success or failure.
  */
 int sel_functions(ip_t* ip);
 
@@ -345,7 +349,7 @@ double calc_power_loss(ip_t* ip, double* vdrop);
  * @param op Output struct to store the outputs.
  * @param file Buffer to output the strings.
  */
-int output_results_IPC2221(ip_t* ip, op_t* op, FILE * file);
+int output_results_IPC2221(ip_t* ip, op_t* op, FILE* file);
 
 /**
  * @brief Outputted results when using the IPC2152, Method A.
@@ -354,7 +358,7 @@ int output_results_IPC2221(ip_t* ip, op_t* op, FILE * file);
  * @param op Output struct to store the outputs.
  * @param file Buffer to output the strings.
  */
-int output_results_IPC2152_A(ip_t* ip, op_t* op, FILE * file);
+int output_results_IPC2152_A(ip_t* ip, op_t* op, FILE* file);
 
 /**
  * @brief Outputted results when using the IPC2152, Method B.
@@ -363,7 +367,7 @@ int output_results_IPC2152_A(ip_t* ip, op_t* op, FILE * file);
  * @param op Output struct to store the outputs.
  * @param file Buffer to output the strings.
  */
-int output_results_IPC2152_B(ip_t* ip, op_t* op, FILE * file);
+int output_results_IPC2152_B(ip_t* ip, op_t* op, FILE* file);
 
 /**
  * @brief Output the help string to the terminal.

@@ -509,7 +509,7 @@ void test_sel_functions() {
     ip.method = 'B';
     TEST_ASSERT_EQUAL_INT(0, sel_functions(&ip));
 
-    ip.standard.num = 123456;
+    ip.standard.num = 12345;
     TEST_ASSERT_EQUAL_INT(1, sel_functions(&ip));
 
     ip.standard.num = IPC2152;
