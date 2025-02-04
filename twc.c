@@ -47,221 +47,190 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
 			continue;
 		}
 
-		if (!(strcmp("-c", argv[i])) || !(strcmp("--current", argv[i]))) {
-			// TODO: Try to simplify or abstract the code execution at each if-branch
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->current.outval = val;
-			ip->current.val = val;
-			ip->current.units = "A";
+		if (!(strcmp("-c", argv[i])) || !(strcmp("-c-A", argv[i])) || !(strcmp("--current", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->current, &val, "A"));
 			i++;
 			continue;
 		}
 
-		if (!strcmp("--current-mA", argv[i])) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->current.outval = val;
-			ip->current.val = 10e-3 * val;
-			ip->current.units = "mA";
+		if (!(strcmp("-c-mA", argv[i])) || !(strcmp("--current-mA", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val *= 10e-3;
+            CHECK_RET(assign_values_no_units(&ip->current, &val, "mA"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("-w", argv[i])) || !(strcmp("--copper-weight", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->copper_weight.outval = val;
-			ip->copper_weight.val = val;
-			ip->copper_weight.units = "oz/ft^2";
+		if (!(strcmp("-w", argv[i])) || !(strcmp("-w-oz", argv[i])) || !(strcmp("--copper-weight", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->copper_weight, &val, "oz/ft^2"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--copper-weight-mil", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->copper_weight.outval = val;
-			ip->copper_weight.val = CONV_MIL_TO_OZFT2(val); /* Convert back to oz/ft^2 for the calculations to work */
-			ip->copper_weight.units = "mil";
+		if (!(strcmp("-w-mil", argv[i])) || !(strcmp("--copper-weight-mil", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_MIL_TO_OZFT2(val); /* Convert back to oz/ft^2 for the calculations to work */
+            CHECK_RET(assign_values_no_units(&ip->copper_weight, &val, "mil"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--copper-weight-mm", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->copper_weight.outval = val;
-			ip->copper_weight.val = CONV_MM_TO_OZFT2(val);
-			ip->copper_weight.units = "mm";
+		if (!(strcmp("-w-mm", argv[i])) || !(strcmp("--copper-weight-mm", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_MM_TO_OZFT2(val);
+            CHECK_RET(assign_values_no_units(&ip->copper_weight, &val, "mm"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--copper-weight-um", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->copper_weight.outval = val;
-			ip->copper_weight.val = CONV_UM_TO_OZFT2(val);
-			ip->copper_weight.units = "um";
+		if (!(strcmp("-w-um", argv[i])) || !(strcmp("--copper-weight-um", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_UM_TO_OZFT2(val);
+            CHECK_RET(assign_values_no_units(&ip->copper_weight, &val, "um"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("-r", argv[i])) || !(strcmp("--temperature-rise", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->temperature_rise.outval = val;
-			ip->temperature_rise.val = val;
-			ip->temperature_rise.units = "C";
+		if (!(strcmp("-r", argv[i])) || !(strcmp("-r-C", argv[i])) || !(strcmp("--temperature-rise", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->temperature_rise, &val, "C"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--temperature-rise-F", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->temperature_rise.outval = val;
-			ip->temperature_rise.val = CONV_FAHR_TO_CELS(val);
-			ip->temperature_rise.units = "F";
+		if (!(strcmp("-r-F", argv[i])) || !(strcmp("--temperature-rise-F", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_FAHR_TO_CELS(val);
+            CHECK_RET(assign_values_no_units(&ip->temperature_rise, &val, "F"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("-a", argv[i])) || !(strcmp("--temperature-ambient", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->temperature_ambient.outval = val;
-			ip->temperature_ambient.val = val;
-			ip->temperature_ambient.units = "C";
+		if (!(strcmp("-a", argv[i])) || !(strcmp("-a-C", argv[i])) || !(strcmp("--temperature-ambient", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->temperature_ambient, &val, "C"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--temperature-ambient-F", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->temperature_ambient.outval = val;
-			ip->temperature_ambient.val = CONV_FAHR_TO_CELS(val);
-			ip->temperature_ambient.units = "F";
+		if (!(strcmp("-a-F", argv[i])) || !(strcmp("--temperature-ambient-F", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_FAHR_TO_CELS(val);
+            CHECK_RET(assign_values_no_units(&ip->temperature_ambient, &val, "F"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("-l", argv[i])) || !(strcmp("--trace-length", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->trace_length.outval = val;
-			ip->trace_length.val = val;
-			ip->trace_length.units = "cm";
+		if (!(strcmp("-l", argv[i])) || !(strcmp("-l-cm", argv[i])) || !(strcmp("--trace-length", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->trace_length, &val, "cm"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--trace-length-mm", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->trace_length.outval = val;
-			ip->trace_length.val = 10e-1 * val;
-			ip->trace_length.units = "mm";
+		if (!(strcmp("-l-mm", argv[i])) || !(strcmp("--trace-length-mm", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val *= 10e-1;
+            CHECK_RET(assign_values_no_units(&ip->trace_length, &val, "mm"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--trace-length-mil", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->trace_length.outval = val;
-			ip->trace_length.val = CONV_MIL_TO_MM(10e-1 * val);
-			ip->trace_length.units = "mil";
+		if (!(strcmp("-l-mil", argv[i])) || !(strcmp("--trace-length-mil", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_MIL_TO_MM(10e-1 * val);
+            CHECK_RET(assign_values_no_units(&ip->trace_length, &val, "mil"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("-t", argv[i])) || !(strcmp("--pcb-thickness", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->pcb_thickness.outval = val;
-			ip->pcb_thickness.val = val;
-			ip->pcb_thickness.units = "mil";
+		if (!(strcmp("-t", argv[i])) || !(strcmp("-t-mil", argv[i])) || !(strcmp("--pcb-thickness", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->pcb_thickness, &val, "mil"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--pcb-thickness-mm", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->pcb_thickness.outval = val;
-			ip->pcb_thickness.val = CONV_MM_TO_MIL(val);
-			ip->pcb_thickness.units = "mm";
+		if (!(strcmp("-t-mm", argv[i])) || !(strcmp("--pcb-thickness-mm", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_MM_TO_MIL(val);
+            CHECK_RET(assign_values_no_units(&ip->pcb_thickness, &val, "mm"));
 			i++;
 			continue;
 		}
 
 		if (!(strcmp("-e", argv[i])) || !(strcmp("--pcb-thermal-conductivity", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->pcb_thermal_cond.outval = val;
-			ip->pcb_thermal_cond.val = CONV_WmK_TO_BTUhftF(val);
-			ip->pcb_thermal_cond.units = "W/mK";
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_WmK_TO_BTUhftF(val);
+            CHECK_RET(assign_values_no_units(&ip->pcb_thermal_cond, &val, "W/mK"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("-p", argv[i])) || !(strcmp("--plane-area", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->plane_area.outval = val;
-			ip->plane_area.val = val;
-			ip->plane_area.units = "in^2";
+		if (!(strcmp("-p", argv[i])) || !(strcmp("-p-in2", argv[i])) || !(strcmp("--plane-area", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->plane_area, &val, "in^2"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--plane-area-cm2", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->plane_area.outval = val;
-			ip->plane_area.val = CONV_CM2_TO_INCH2(val);
-			ip->plane_area.units = "cm^2";
+		if (!(strcmp("-p-cm2", argv[i])) || !(strcmp("--plane-area-cm2", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_CM2_TO_INCH2(val);
+            CHECK_RET(assign_values_no_units(&ip->plane_area, &val, "cm^2"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("-d", argv[i])) || !(strcmp("--plane-distance", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->plane_distance.outval = val;
-			ip->plane_distance.val = val;
-			ip->plane_distance.units = "mil";
+		if (!(strcmp("-d", argv[i])) || !(strcmp("-d-mil", argv[i])) || !(strcmp("--plane-distance", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->plane_distance, &val, "mil"));
 			i++;
 			continue;
 		}
 
-		if (!(strcmp("--plane-distance-mm", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->plane_distance.outval = val;
-			ip->plane_distance.val = CONV_MM_TO_MIL(val);
-			ip->plane_distance.units = "mm";
+		if (!(strcmp("-d-mm", argv[i])) || !(strcmp("--plane-distance-mm", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+			val = CONV_MM_TO_MIL(val);
+            CHECK_RET(assign_values_no_units(&ip->plane_distance, &val, "mm"));
 			i++;
 			continue;
 		}
 
 		if (!(strcmp("--resistivity", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->resistivity.outval = val;
-			ip->resistivity.val = val;
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->resistivity, &val, "\0"));
 			i++;
 			continue;
 		}
 
 		if (!(strcmp("--temperature-coefficient", argv[i]))) {
-			CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-			CHECK_LIMITS(val);
-			ip->a.outval = val;
-			ip->a.val = val;
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            CHECK_RET(assign_values_no_units(&ip->a, &val, "\0"));
 			i++;
 			continue;
 		}
@@ -464,6 +433,16 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
 
 	return 0;
 }
+
+int assign_values_no_units(dbl_t* ip_dbl, double* val, char* units)
+{
+    ip_dbl->outval = *val;
+    ip_dbl->val = *val;
+    ip_dbl->units = units;
+
+    return 0;
+}
+
 
 int get_standard_method(int* restrict argc, char** restrict argv, ip_t* restrict ip)
 {
@@ -732,6 +711,7 @@ int sel_functions(ip_t* restrict ip)
 
 			switch (ip->method) {
 				case 'A':
+
 					ip->defv = &set_defv_IPC2221;
 					ip->proc = &calcs_IPC2221;
 					ip->outu = &set_outu_IPC2221;
@@ -1006,7 +986,7 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 	        "\n- Constants and method used were derived from http://circuitcalculator.com/wordpress/2006/03/12/pcb-via-calculator/.\n");
 
 	fprintf(file,
-	        "\n- Used the %s standard, Method %c\n", ip->standard.str, ip->method);
+	        "\n- Used the %s standard, Method %c.\n", ip->standard.str, ip->method);
 
 	fprintf(file, DISCLAIMER_STR);
 
@@ -1061,7 +1041,7 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 	        "\n- Constants and method used were derived from https://www.smps.us/pcb-calculator.html.\n");
 
 	fprintf(file,
-	        "\n- Used the %s standard, Method %c\n", ip->standard.str, ip->method);
+	        "\n- Used the %s standard, Method %c.\n", ip->standard.str, ip->method);
 
 	fprintf(file, DISCLAIMER_STR);
 
@@ -1115,7 +1095,7 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 	        "\n- Constants and method used were derived from https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152.\n");
 
 	fprintf(file,
-	        "\n- Used the %s standard, Method %c\n", ip->standard.str, ip->method);
+	        "\n- Used the %s standard, Method %c.\n", ip->standard.str, ip->method);
 
 	fprintf(file, DISCLAIMER_STR);
 
@@ -1126,31 +1106,31 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 int output_help()
 {
 	printf("\nHelp for the Trace Width Calculator (TWC). Specify units with the long options, listed below the short options."
-	       "\n\t-c, \t--current <Current [A]>\t\t\t\t= Input the trace current in Amps.\n"
-	       "\t\t--current-mA\n"
-	       "\n\t-w, \t--copper-weight <Copper Weight [oz/ft^2]>\t= Input the copper weight in oz per ft^2.\n"
-	       "\t\t--copper-weight-mil\n"
-	       "\t\t--copper-weight-mm\n"
-	       "\t\t--copper-weight-um\n"
-	       "\n\t-r \t--temperature-rise <Temperature Rise [C]>\t= Input the maximum allowed temperature rise in C.\n"
-	       "\t\t--temperature-rise-F\n"
-	       "\n\t-a, \t--temperature-ambient <Ambient Temperature [C]>\t= Input the ambient temperature of the trace in C.\n"
-	       "\t\t--temperature-ambient-F\n"
-	       "\n\t-l, \t--trace--length<Trace Length [cm]>\t\t= Input the trace length in centimeters.\n"
-	       "\t\t--trace--length-mm\n"
-	       "\t\t--trace--length-mil\n"
-	       "\n\t-t, \t--pcb-thickness <Thickness [mm]>\t\t= Input the PCB thickness in milimeters.\n"
-	       "\t\t--pcb-thickness-mil\n"
-	       "\n\t-e, \t--pcb-thermal-conductivity <Therm. Con. [W/mK]>\t= Input the PCB thermal conductivity in Watts per meter Kelvin.\n"
-	       "\n\t-p, \t--plane-cs_area <Plane Area [in^2]>\t\t= Input the plane cs_area in inches squared.\n"
-	       "\t\t--plane-cs_area-cm2\n"
-	       "\n\t-d, \t--plane-distance <Plane Distance [mil]>\t\t= Input the plane distance in mil.\n"
-	       "\t\t--plane-distance-mm\n"
-	       "\n\t--resistivity <Resistivity [Ohm m]>\t\t\t= Input the resistivity in Ohm meters.\n"
-	       "\n\t--temperature-coefficient <Temp. Coefficient [1/C]>\t= Input the temperature coefficient.\n"
-	       "\n\t-o <File Name>\t\t\t= Write the name of the outputted file. Use '.txt' to create a text file. Use a single '.' to auto-generate the name based on date/time. Can also write the full path to the file, e.g. 'C:/Users/user/output.txt' or stop at 'C:/Users/user/' to use the auto-generated file name.\n"
-	       "\n\t-m, \t--metric\t\t\t\t\t= Make the output units be metric.\n"
-	       "\n\t-i, \t--imperial\t\t\t\t\t= Make the output units be imperial. Default behaviour, therefore just implemented for completion.\n"
+	       "\n\t-c[-A],\t\t--current <Current [A]>\t\t\t\t= Input the trace current in Amps.\n"
+	       "\t-c-mA,\t\t--current-mA\n"
+	       "\n\t-w[-oz],\t--copper-weight <Copper Weight [oz/ft^2]>\t= Input the copper weight in oz per ft^2.\n"
+	       "\t-w-mil,\t\t--copper-weight-mil\n"
+	       "\t-w-mm,\t\t--copper-weight-mm\n"
+	       "\t-w-um,\t\t--copper-weight-um\n"
+	       "\n\t-r[-C],\t\t--temperature-rise <Temperature Rise [C]>\t= Input the maximum allowed temperature rise in C.\n"
+	       "\t-r-F,\t\t--temperature-rise-F\n"
+	       "\n\t-a[-C],\t\t--temperature-ambient <Ambient Temperature [C]>\t= Input the ambient temperature of the trace in C.\n"
+	       "\t-r-F,\t\t--temperature-ambient-F\n"
+	       "\n\t-l[-cm],\t--trace--length <Trace Length [cm]>\t\t= Input the trace length in centimeters.\n"
+	       "\t-l-mm,\t\t--trace--length-mm\n"
+	       "\t-l-mil,\t\t--trace--length-mil\n"
+	       "\n\t-t[-mm],\t--pcb-thickness <Thickness [mm]>\t\t= Input the PCB thickness in milimeters.\n"
+	       "\t-t-mil,\t\t--pcb-thickness-mil\n"
+	       "\n\t-e,\t\t--pcb-thermal-conductivity <Therm. Con. [W/mK]>\t= Input the PCB thermal conductivity in Watts per meter Kelvin.\n"
+	       "\n\t-p[-in2],\t--plane-cs-area <Plane Area [in^2]>\t\t= Input the plane cs_area in inches squared.\n"
+	       "\t-p-cm2,\t\t--plane-cs-area-cm2\n"
+	       "\n\t-d[-mil],\t--plane-distance <Plane Distance [mil]>\t\t= Input the plane distance in mil.\n"
+	       "\t-d-mm,\t\t--plane-distance-mm\n"
+	       "\n\t\t--resistivity <Resistivity [Ohm m]>\t\t\t= Input the resistivity in Ohm meters.\n"
+	       "\n\t\t--temperature-coefficient <Temp. Coefficient [1/C]>\t= Input the temperature coefficient.\n"
+	       "\n\t-o,\t\t--output <File Name>\t\t\t\t= Write the name of the outputted file. Use '.txt' to create a text file. Use a single '.' to auto-generate\n\t\t\t\t\t\t\t\t\t  the name based on date/time. Can also write the full path to the file, e.g. 'C:/Users/user/output.txt'\n\t\t\t\t\t\t\t\t\t  or stop at 'C:/Users/user/' to use the auto-generated file name.\n"
+	       "\n\t-m, \t\t--metric\t\t\t\t\t= Make the output units be metric.\n"
+	       "\n\t-i, \t\t--imperial\t\t\t\t\t= Make the output units be imperial. Default behaviour, therefore just implemented for completion.\n"
 	       "\n\n\t\t\tCONVERSIONS\n"
 	       "\n\t--convert-mil2-cm2\t= From mils sq. to centimeters sq."
 	       "\n\t--convert-mil2-mm2\t= From mils sq. to milimeters sq."

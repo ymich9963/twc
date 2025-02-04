@@ -16,6 +16,12 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+//TODO: Describe in docs the workflow for development
+//TODO: Add more methods
+//TODO: Add SI suffix check for each value. Might mean a separate checking function for the inputs that will use this.
+//TODO: Add short options for converting the uints e.g. -c-mA. And also add specifying units for short options even if they're default like -c-A. Make a new version with this.
+//TODO: Put a sample of the help option in the docs
+
 #include "twc.h"
 
 int main(int argc, char** argv)

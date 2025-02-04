@@ -684,6 +684,17 @@ void test_get_options() {
     reset(argv, &ip, 30);
 }
 
+void test_assign_values_no_units() {
+    dbl_t ip_dbl;
+    double val = 1;
+
+    assign_values_no_units(&ip_dbl, &val, "test");
+
+    TEST_ASSERT_EQUAL_INT(1, ip_dbl.val);
+    TEST_ASSERT_EQUAL_INT(1, ip_dbl.outval);
+    TEST_ASSERT_EQUAL_STRING("test", ip_dbl.units);
+}
+
 void test_conversions() {
     int argc;
     char* argv[3];
@@ -810,6 +821,7 @@ int main() {
     RUN_TEST(test_check_standard);
     RUN_TEST(test_get_standard_method);
     RUN_TEST(test_get_options);
+    RUN_TEST(test_assign_values_no_units);
     RUN_TEST(test_conversions);
     return UNITY_END();
 }
