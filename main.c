@@ -18,9 +18,9 @@
 
 //TODO: Describe in docs the workflow for development
 //TODO: Add more methods
-//TODO: Add SI suffix check for each value. Might mean a separate checking function for the inputs that will use this.
-//TODO: Add short options for converting the uints e.g. -c-mA. And also add specifying units for short options even if they're default like -c-A. Make a new version with this.
+//TODO: Add SI suffix check for each value.
 //TODO: Put a sample of the help option in the docs
+//TODO: Re-write functions where pointers aren't necessary for easier reading
 
 #include "twc.h"
 
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 	ip.ofile.oflag = 0;
 
 	/* Get the standard and the method for the calculations */
-	CHECK_ERR(get_standard_method(&argc, argv, &ip));
+	CHECK_ERR(get_standard_method(argc, argv, &ip));
 
 	/* Set functions based on the inputs */
 	CHECK_ERR(sel_functions(&ip));
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 	ip.defv(&ip);
 
 	/* Get the inputs and options */
-	CHECK_ERR(get_options(&argc, argv, &ip));
+	CHECK_ERR(get_options(argc, argv, &ip));
 
 	/* Calculate the values */
 	ip.proc(&ip, &op);
@@ -63,10 +63,10 @@ int main(int argc, char** argv)
 
 	/* Open file to save outputs */
 	if (ip.ofile.oflag) {
-		file = fopen(ip.ofile.dest, "w");
+		file = fopen(ip.ofile.path, "w");
 
 		if (!(file)) {
-			fprintf(stderr, "\nFile not able to be saved, check input. Directory may not exist.\n\n");
+			fprintf(stderr, "\nFile not able to be saved, check input. Directory '%s' may not exist.\n\n", ip.ofile.path);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
 	/* Close file and free memory */
 	if (file != stdout) {
 		fclose(file);
-		printf("\nContents exported to %s\n\n", ip.ofile.dest);
+		printf("\nContents exported to %s\n\n", ip.ofile.path);
 	}
 
 	/* Program done. exit succesfully */

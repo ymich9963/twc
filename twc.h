@@ -22,8 +22,7 @@
 #define	VAL_MIN 0.0f
 #define	STD_NAME_LEN 8
 #define	OUT_FILE_LEN 30
-#define	DEST_LEN 100
-#define	PATH_LEN DEST_LEN - OUT_FILE_LEN
+#define	PATH_LEN 255
 #define	WELCOME_STR "\nTrace Width Calculator, Made by Yiannis Michael (2024). \n\nPlease 'type twc.exe <Current [A]> <Copper Weight [oz/ft^2]>' to get output results. Use '--help' for explanation of the flags and more advanced usage, for different units, optional inputs, etc.\n\nThis tool should only be used to assist design decisions and not be used to replace professional advice. Developer(s) have no liability whatsoever.\n\n" "This program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n"
 #define	FEW_ARGS_STR "\nAn input of at least Current [A] and Copper Weight [oz/ft^2] is required. Use no arguments to get the welcome message and either '-h' or '--help' to get the list of commands.\n"
 #define	VERSION_STR "\nTrace Width Calculator (TWC)\nVersion 1.0.7\n"
@@ -102,8 +101,7 @@ typedef layer_t intl_t;
 
 typedef struct OFile {
 	char fname[OUT_FILE_LEN];
-	char path[PATH_LEN - OUT_FILE_LEN];
-	char dest[PATH_LEN];
+	char path[PATH_LEN];
 	uint8_t oflag;                // Output file flag
 } ofile_t; /* Output file strcture */
 
@@ -118,7 +116,7 @@ typedef struct CF {
 	double pcb_thickness;
 	double plane_area;
 	double plane_distance;
-	double temperature_rise;
+	double temp_rise;
 	double pcb_thermal_cond;
 } cf_t; /* Correction Factors Struct */
 
@@ -133,8 +131,8 @@ typedef struct IP {
 	/* Optional Inputs */
 	std_t standard;             // IPC standard
 	char method;                // Method to use for calculations
-	dbl_t temperature_rise;     // [Celsius]
-	dbl_t temperature_ambient;  // [Celsius]
+	dbl_t temp_rise;            // [Celsius]
+	dbl_t temp_ambient;         // [Celsius]
 	dbl_t trace_length;         // [cm]
 	dbl_t resistivity;          // [Ohm*cm]
 	dbl_t pcb_thickness;        // [mm]
@@ -165,7 +163,7 @@ enum {
  *
  * @return Success or failure.
  */
-int get_options(int* argc, char** argv, ip_t* ip);
+int get_options(int argc, char** argv, ip_t* ip);
 
 
 /**
@@ -255,7 +253,7 @@ int set_outu_IPC2152(ip_t* ip, op_t* op);
  *
  * @return Success or failure.
  */
-int get_standard_method(int* argc, char** argv, ip_t* ip);
+int get_standard_method(int argc, char** argv, ip_t* ip);
 
 /**
  * @brief Used to check the inputted standard option string, with the array containing the names of the standards. Index is used to set the standard numerical representation.
@@ -317,7 +315,7 @@ char* get_time();
  * @param ip Input struct to get the inputs used in the calculation.
  * @param layer Output layer struct to store the results.
  */
-void calc_w_r_vd_pl(ip_t* ip, layer_t* layer);
+void calc_width_res_vdrop_ploss(ip_t* ip, layer_t* layer);
 
 /**
  * @brief Used to calculate the width of the trace.
@@ -326,7 +324,7 @@ void calc_w_r_vd_pl(ip_t* ip, layer_t* layer);
  * @param cs_area Cross sectional area of the trace.
  * @return Trace width in type double.
  */
-double calc_trace_width_mils(ip_t* ip, double* cs_area);
+double calc_trace_width_mils(ip_t* ip, double cs_area);
 
 /**
  * @brief Calculate the resistance of the trace. Resistivity gets converted to Ohm cm.
@@ -335,7 +333,7 @@ double calc_trace_width_mils(ip_t* ip, double* cs_area);
  * @param cs_area Cross sectional area of the trace.
  * @return Resistance in type double.
  */
-double calc_resistance(ip_t* ip, double* cs_area);
+double calc_resistance(ip_t* ip, double cs_area);
 
 /**
  * @brief Calculate the Voltage drop.
@@ -344,7 +342,7 @@ double calc_resistance(ip_t* ip, double* cs_area);
  * @param resistance Resistance in Ohms.
  * @return Voltage drop in type double.
  */
-double calc_vdrop(ip_t* ip, double* resistance);
+double calc_vdrop(ip_t* ip, double resistance);
 
 /**
  * @brief Calculate the power loss.
@@ -353,7 +351,7 @@ double calc_vdrop(ip_t* ip, double* resistance);
  * @param vdrop Voltage drop in V.
  * @return Power loss in type double.
  */
-double calc_power_loss(ip_t* ip, double* vdrop);
+double calc_power_loss(ip_t* ip, double vdrop);
 
 /**
  * @brief Outputted results when using the IPC2221.

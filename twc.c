@@ -8,18 +8,18 @@
 
 #include "twc.h"
 
-int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
+int get_options(int argc, char** restrict argv, ip_t* restrict ip)
 {
 	unsigned char num_rec = 0; /* Used to record the two allowed numerical options */
 	double val; /* Temporary value to store the argument */
 
-	if (*argc == 1) {
+	if (argc == 1) {
 		printf(WELCOME_STR);
 
 		return 1;
 	}
 
-	for (int i = 1; i < *argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		/* Check these options before anything else */
 		if (!(strcmp("-h", argv[i])) || !(strcmp("--help", argv[i]))) {
 			output_help();
@@ -34,7 +34,7 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
 		}
 
 		/* Important to check when using the default numerical behaviour */
-		if (*argc == 2) {
+		if (argc == 2) {
 			fprintf(stderr, "%s\n", FEW_ARGS_STR);
 
 			return 1;
@@ -102,7 +102,7 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
 		if (!(strcmp("-r", argv[i])) || !(strcmp("-r-C", argv[i])) || !(strcmp("--temperature-rise", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
-            CHECK_RET(assign_values_no_units(&ip->temperature_rise, &val, "C"));
+            CHECK_RET(assign_values_no_units(&ip->temp_rise, &val, "C"));
 			i++;
 			continue;
 		}
@@ -111,7 +111,7 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
 			val = CONV_FAHR_TO_CELS(val);
-            CHECK_RET(assign_values_no_units(&ip->temperature_rise, &val, "F"));
+            CHECK_RET(assign_values_no_units(&ip->temp_rise, &val, "F"));
 			i++;
 			continue;
 		}
@@ -119,7 +119,7 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
 		if (!(strcmp("-a", argv[i])) || !(strcmp("-a-C", argv[i])) || !(strcmp("--temperature-ambient", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
-            CHECK_RET(assign_values_no_units(&ip->temperature_ambient, &val, "C"));
+            CHECK_RET(assign_values_no_units(&ip->temp_ambient, &val, "C"));
 			i++;
 			continue;
 		}
@@ -128,7 +128,7 @@ int get_options(int* restrict argc, char** restrict argv, ip_t* restrict ip)
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
 			val = CONV_FAHR_TO_CELS(val);
-            CHECK_RET(assign_values_no_units(&ip->temperature_ambient, &val, "F"));
+            CHECK_RET(assign_values_no_units(&ip->temp_ambient, &val, "F"));
 			i++;
 			continue;
 		}
@@ -443,8 +443,7 @@ int assign_values_no_units(dbl_t* ip_dbl, double* val, char* units)
     return 0;
 }
 
-
-int get_standard_method(int* restrict argc, char** restrict argv, ip_t* restrict ip)
+int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
 {
 	const char* standard_arr[] = { "IPC2221", "IPC2152", "afko" }; /* Standard names array */
 	const int standard_const[] = { IPC2221, IPC2152, 666 }; /* Number representation of the standards */
@@ -458,7 +457,7 @@ int get_standard_method(int* restrict argc, char** restrict argv, ip_t* restrict
 	/* Index where the input was matched to the available standards */
 	unsigned char index;
 
-	for (int i = 1; i < *argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		if (!(strcmp("--standard", argv[i]))) {
 			CHECK_RES(sscanf(argv[i + 1], "%s", strval));
 			CHECK_RET(check_standard(strval, standard_arr, ssize, &index));
@@ -591,13 +590,13 @@ void set_defv_IPC2221(ip_t* restrict ip)
 	ip->copper_weight.val = 0;
 	ip->copper_weight.units = "oz/ft^2";
 
-	ip->temperature_rise.outval = 10;
-	ip->temperature_rise.val = 10;
-	ip->temperature_rise.units = "C";
+	ip->temp_rise.outval = 10;
+	ip->temp_rise.val = 10;
+	ip->temp_rise.units = "C";
 
-	ip->temperature_ambient.outval = 25;
-	ip->temperature_ambient.val = 25;
-	ip->temperature_ambient.units = "C";
+	ip->temp_ambient.outval = 25;
+	ip->temp_ambient.val = 25;
+	ip->temp_ambient.units = "C";
 
 	ip->trace_length.outval = 0;
 	ip->trace_length.val = 0;
@@ -622,9 +621,9 @@ void set_defv_IPC2152_A(ip_t* restrict ip)
 	ip->copper_weight.val = 0;
 	ip->copper_weight.units = "oz/ft^2";
 
-	ip->temperature_rise.outval = 10;
-	ip->temperature_rise.val = 10;
-	ip->temperature_rise.units = "C";
+	ip->temp_rise.outval = 10;
+	ip->temp_rise.val = 10;
+	ip->temp_rise.units = "C";
 
 	ip->trace_length.outval = 0;
 	ip->trace_length.val = 0;
@@ -652,7 +651,7 @@ void set_defv_IPC2152_A(ip_t* restrict ip)
 
 	/* Set modifier defaults */
 	ip->cf.copper_weight = 1;
-	ip->cf.temperature_rise = 1;
+	ip->cf.temp_rise = 1;
 	ip->cf.plane_area = 1;
 	ip->cf.pcb_thickness = 1;
 	ip->cf.plane_distance = 1;
@@ -669,9 +668,9 @@ void set_defv_IPC2152_B(ip_t* restrict ip)
 	ip->copper_weight.val = 0;
 	ip->copper_weight.units = "oz/ft^2";
 
-	ip->temperature_rise.outval = 10;
-	ip->temperature_rise.val = 10;
-	ip->temperature_rise.units = "C";
+	ip->temp_rise.outval = 10;
+	ip->temp_rise.val = 10;
+	ip->temp_rise.units = "C";
 
 	ip->trace_length.outval = 0;
 	ip->trace_length.val = 0;
@@ -765,40 +764,40 @@ void autogen_file_name(char* restrict fname)
 void set_output_file(ofile_t* restrict ofile, char* restrict optarg)
 {
 	// TODO: Make the path, destination, and file name sizes, dynamically change.
-	// TODO: Make a case for using './' in the optarg
-	// TODO: Generally make this better
 
 	const size_t len = strlen(optarg);
 
-	/* If given a . use the current directory for the output */
+	/* If given a '.' use autogenerate a file name based on the current date/time */
 	if (optarg[0] == '.' && len <= 2) {
 		autogen_file_name(ofile->fname);
-		/* If given a path with no name, autogenerate the name at that path */
-	} else if (optarg[len - 1] == '/') {
-		strcpy(ofile->path, optarg);
+		strcpy(ofile->path, "\0");
+    /* If given a path with no name, autogenerate the name at that path */
+	} else if ((optarg[len - 1] == '/') || (optarg[len - 1] == '\\')) {
 		autogen_file_name(ofile->fname);
-		/* Last case is a file name */
+		strcpy(ofile->path, optarg);
+    /* Last case is a file name */
 	} else {
 		strcpy(ofile->fname, optarg);
 		strcpy(ofile->path, "\0");
 	}
 
-	sprintf(ofile->dest, "%s%s", ofile->path, ofile->fname);
+	sprintf(ofile->path, "%s%s", ofile->path, ofile->fname);
 }
 
 void calcs_IPC2221(ip_t* restrict ip, op_t* restrict op)
 {
-	op->extl.cs_area.val = pow(ip->current.val / (k_EXT * pow(ip->temperature_rise.val, 0.44)), 1 / 0.725);
-	calc_w_r_vd_pl(ip, &op->extl);
-	op->intl.cs_area.val = pow(ip->current.val / (k_INT * pow(ip->temperature_rise.val, 0.44)), 1 / 0.725);
-	calc_w_r_vd_pl(ip, &op->intl);
+	op->extl.cs_area.val = pow(ip->current.val / (k_EXT * pow(ip->temp_rise.val, 0.44)), 1 / 0.725);
+	calc_width_res_vdrop_ploss(ip, &op->extl);
+
+	op->intl.cs_area.val = pow(ip->current.val / (k_INT * pow(ip->temp_rise.val, 0.44)), 1 / 0.725);
+	calc_width_res_vdrop_ploss(ip, &op->intl);
 }
 
 void calcs_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
 {
 	/* Different one on the website, and different one in the website code */
-	op->layer.cs_area.val = (110.515 * pow(ip->temperature_rise.val, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->temperature_rise.val, -0.102) + 1.129);
-	/* op->layer.cs_area = (117.555 * pow(ip->temperature_rise.val, -0.913) + 1.15) * pow(ip->current.val, 0.84 * pow(ip->temperature_rise.val, -0.018) + 1.159);  */
+	op->layer.cs_area.val = (110.515 * pow(ip->temp_rise.val, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->temp_rise.val, -0.102) + 1.129);
+    // op->layer.cs_area.val = (117.555 * pow(ip->temp_rise.val, -0.913) + 1.15) * pow(ip->current.val, 0.84 * pow(ip->temp_rise.val, -0.018) + 1.159); 
 
 	/* Copper weight correction factor */
 	if (ip->copper_weight.val == 2) {
@@ -831,22 +830,22 @@ void calcs_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
 	}
 
 	/* Calculate the corrected temperature rise */
-	ip->cf.temperature_rise = ip->temperature_rise.val / (ip->cf.copper_weight * ip->cf.pcb_thickness * ip->cf.plane_distance * ip->cf.plane_area);
+	ip->cf.temp_rise = ip->temp_rise.val / (ip->cf.copper_weight * ip->cf.pcb_thickness * ip->cf.plane_distance * ip->cf.plane_area);
 
 	/* Calculate the corrected CS area */
-	op->layer.corr_cs_area.val = (110.515 * pow(ip->cf.temperature_rise, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->cf.temperature_rise, -0.102) + 1.129);
+	op->layer.corr_cs_area.val = (110.515 * pow(ip->cf.temp_rise, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->cf.temp_rise, -0.102) + 1.129);
 
 	/* Corrected Trace Width */
-	op->layer.corr_trace_width.val = 0.7692 * calc_trace_width_mils(ip, &op->layer.corr_cs_area.val) * 1.378; // multiply by 1.378 to remove the conversion inside the function
+	op->layer.corr_trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.corr_cs_area.val) * 1.378; // multiply by 1.378 to remove the conversion inside the function
 
-	calc_w_r_vd_pl(ip, &op->layer);
+	calc_width_res_vdrop_ploss(ip, &op->layer);
 
-	op->layer.trace_width.val = 0.7692 * calc_trace_width_mils(ip, &op->layer.cs_area.val) * 1.378; // overwrites the result from calc_w_r_vd_pl()
+	op->layer.trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.cs_area.val) * 1.378; // overwrites the result from calc_width_res_vdrop_ploss()
 }
 
 void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
 {
-	op->layer.cs_area.val = pow(ip->current.val / (0.089710902134 * pow(ip->temperature_rise.val, 0.39379253898)), 1 / (0.50382053698 * pow(ip->temperature_rise.val, 0.038495772461)));
+	op->layer.cs_area.val = pow(ip->current.val / (0.089710902134 * pow(ip->temp_rise.val, 0.39379253898)), 1 / (0.50382053698 * pow(ip->temp_rise.val, 0.038495772461)));
 
 	/* Coefficients array */
 	double coeff_arr[6][4] = {
@@ -880,41 +879,41 @@ void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
 	op->layer.corr_cs_area.val = op->layer.cs_area.val * ip->cf.copper_weight * ip->cf.pcb_thickness * ip->cf.plane_distance * ip->cf.pcb_thermal_cond;
 
 	/* Corrected Trace Width */
-	op->layer.corr_trace_width.val = calc_trace_width_mils(ip, &op->layer.corr_cs_area.val);
+	op->layer.corr_trace_width.val = calc_trace_width_mils(ip, op->layer.corr_cs_area.val);
 
-	calc_w_r_vd_pl(ip, &op->layer);
+	calc_width_res_vdrop_ploss(ip, &op->layer);
 }
 
-void calc_w_r_vd_pl(ip_t* restrict ip, layer_t* restrict layer)
+void calc_width_res_vdrop_ploss(ip_t* restrict ip, layer_t* restrict layer)
 {
-	layer->trace_width.val = calc_trace_width_mils(ip, &layer->cs_area.val);
+	layer->trace_width.val = calc_trace_width_mils(ip, layer->cs_area.val);
 
 	if (ip->trace_length.val > 0) {
-		layer->resistance.val = calc_resistance(ip, &layer->cs_area.val);
+		layer->resistance.val = calc_resistance(ip, layer->cs_area.val);
 	}
 
-	layer->voltage_drop.val = calc_vdrop(ip, &layer->resistance.val);
-	layer->power_loss.val = calc_power_loss(ip, &layer->voltage_drop.val);
+	layer->voltage_drop.val = calc_vdrop(ip, layer->resistance.val);
+	layer->power_loss.val = calc_power_loss(ip, layer->voltage_drop.val);
 }
 
-double calc_trace_width_mils(ip_t* restrict ip, double* restrict cs_area)
+double calc_trace_width_mils(ip_t* restrict ip, double cs_area)
 {
-	return *cs_area / CONV_OZFT2_TO_MIL(ip->copper_weight.val);
+	return cs_area / CONV_OZFT2_TO_MIL(ip->copper_weight.val);
 }
 
-double calc_resistance(ip_t* restrict ip, double* restrict cs_area)
+double calc_resistance(ip_t* restrict ip, double cs_area)
 {
-	return ((ip->trace_length.val * ip->resistivity.val) / (CONV_MIL2_TO_CM2(*cs_area))) * (1 + (ip->a.val * ((ip->temperature_rise.val + ip->temperature_ambient.val) - ip->temperature_ambient.val)));
+	return ((ip->trace_length.val * ip->resistivity.val) / (CONV_MIL2_TO_CM2(cs_area))) * (1 + (ip->a.val * ((ip->temp_rise.val + ip->temp_ambient.val) - ip->temp_ambient.val)));
 }
 
-double calc_vdrop(ip_t* restrict ip, double* restrict resistance)
+double calc_vdrop(ip_t* restrict ip, double resistance)
 {
-	return ip->current.val * (*resistance);
+	return ip->current.val * resistance;
 }
 
-double calc_power_loss(ip_t* ip, double* vdrop)
+double calc_power_loss(ip_t* ip, double vdrop)
 {
-	return ip->current.val * (*vdrop);
+	return ip->current.val * vdrop;
 }
 
 char* get_time()
@@ -936,7 +935,7 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 	        "Temperature, Rise:\t%lf\t[%s]\n"
 	        "Temperature, Ambient:\t%lf\t[%s]\n"
 	        "Trace Length:\t\t%lf\t[%s]\n",
-	        ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temperature_rise.outval, ip->temperature_rise.units, ip->temperature_ambient.val, ip->temperature_ambient.units, ip->trace_length.outval, ip->trace_length.units);
+	        ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temp_rise.outval, ip->temp_rise.units, ip->temp_ambient.val, ip->temp_ambient.units, ip->trace_length.outval, ip->trace_length.units);
 
 	fprintf(file,
 	        "\n\n"
@@ -1004,7 +1003,7 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 	        "PCB Thickness:\t\t%lf\t[%s]\n"
 	        "Plane Distance:\t\t%lf\t[%s]\n"
 	        "Plane Area:\t\t%lf\t[%s]\n",
-	        ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temperature_rise.outval, ip->temperature_rise.units, ip->trace_length.outval, ip->trace_length.units, ip->pcb_thickness.outval, ip->pcb_thickness.units, ip->plane_distance.outval, ip->plane_distance.units, ip->plane_area.outval, ip->plane_area.units);
+	        ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temp_rise.outval, ip->temp_rise.units, ip->trace_length.outval, ip->trace_length.units, ip->pcb_thickness.outval, ip->pcb_thickness.units, ip->plane_distance.outval, ip->plane_distance.units, ip->plane_area.outval, ip->plane_area.units);
 
 	fprintf(file,
 	        "\n"
@@ -1028,7 +1027,7 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 	        "Plane Area CF:\t\t%lf\t[units]\n"
 	        "Plane Distance CF:\t%lf\t[units]\n"
 	        "Temperature Rise CF:\t%lf\t[units]\n",
-	        ip->cf.copper_weight, ip->cf.pcb_thickness, ip->cf.plane_area, ip->cf.plane_distance, ip->cf.temperature_rise);
+	        ip->cf.copper_weight, ip->cf.pcb_thickness, ip->cf.plane_area, ip->cf.plane_distance, ip->cf.temp_rise);
 
 	fprintf(file, ip->trace_length.val == 0 ?
 	        "\n- Use trace length with '-l' to get voltage, resistance and power calculations.\n" :
@@ -1059,7 +1058,7 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 	        "PCB Thickness:\t\t%lf\t[%s]\n"
 	        "Plane Distance:\t\t%lf\t[%s]\n"
 	        "PCB Thermal Cond.:\t%lf\t[%s]\n",
-	        ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temperature_rise.outval, ip->temperature_rise.units, ip->trace_length.outval, ip->trace_length.units, ip->pcb_thickness.outval, ip->pcb_thickness.units, ip->plane_distance.outval, ip->plane_distance.units, ip->pcb_thermal_cond.outval, ip->pcb_thermal_cond.units);
+	        ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temp_rise.outval, ip->temp_rise.units, ip->trace_length.outval, ip->trace_length.units, ip->pcb_thickness.outval, ip->pcb_thickness.units, ip->plane_distance.outval, ip->plane_distance.units, ip->pcb_thermal_cond.outval, ip->pcb_thermal_cond.units);
 
 	fprintf(file,
 	        "\n"
