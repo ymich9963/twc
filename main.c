@@ -17,10 +17,11 @@
  */
 
 //TODO: Describe in docs the workflow for development
+// Mention in docs that the default behaviour is metrimc
 //TODO: Add more methods
-//TODO: Add SI suffix check for each value.
 //TODO: Put a sample of the help option in the docs
-//TODO: Re-write functions where pointers aren't necessary for easier reading
+//TODO: Add a --comment/description option to add some custom text to the output
+//TODO: Remove any unecessary conversions to make it easier to use
 
 #include "twc.h"
 
@@ -38,7 +39,7 @@ int main(int argc, char** argv)
 	/* Universal Defaults */
 	ip.standard.num = IPC2152;
 	ip.method = 'A';
-	ip.uflag = 'i';
+	ip.uflag = 'm';
 	ip.resistivity.val = 1.724e-6;
 	ip.a.val = 3.93e-3;
 	ip.ofile.oflag = 0;

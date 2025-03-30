@@ -32,13 +32,16 @@
 #define	CONV_MIL2_TO_CM2(x) ((x) * 0.00254 * 0.00254)
 #define	CONV_MIL2_TO_MM2(x) ((x) * 0.0254 * 0.0254)
 #define	CONV_MM2_TO_MIL2(x) ((x) / 0.0254 / 0.0254)
+#define	CONV_M2_TO_INCH2(x) ((x) / (2.54 * 2.54) * 1e-2)
 #define	CONV_CM2_TO_INCH2(x) ((x) / (2.54 * 2.54))
 #define	CONV_MIL_TO_OZFT2(x) ((x) / 1.378)   // most sources say 1.37, few others say 1.378.
+#define	CONV_M_TO_OZFT2(x) ((x) * 39.37007874 / 1.378 * 1e3)
 #define	CONV_MM_TO_OZFT2(x) ((x) * 39.37007874 / 1.378)
 #define	CONV_UM_TO_OZFT2(x) ((x) * 39.37007874 / 1.378 * 1e-3)
 #define	CONV_OZFT2_TO_MIL(x) ((x) * 1.378)
 #define	CONV_OZFT2_TO_MM(x) ((x) * 1.378 * 0.0254)
 #define	CONV_OZFT2_TO_UM(x) ((x) * 1.378 * 0.0254 * 1e3)
+#define	CONV_M_TO_MIL(x) ((x) * 39.37007874 * 1e-3)
 #define	CONV_MM_TO_MIL(x) ((x) * 39.37007874)
 #define	CONV_MIL_TO_MM(x) ((x) * 0.0254)
 #define	CONV_FAHR_TO_CELS(x) (((x) - 32) / 1.8)
@@ -165,18 +168,38 @@ enum {
  */
 int get_options(int argc, char** argv, ip_t* ip);
 
+/**
+ * @brief Used to correctly split the input and to scale the value depending on the SI prefix.
+ *
+ * @param ip_dbl dbl_t struct.
+ * @param optstirng String that contains the value.
+ * @param SI_derived_units Character for the SI derived units.
+ *
+ * @return Success or failure.
+ */
+int assign_values_units_metric(dbl_t* ip_dbl, char* optstring, char SI_derived_units);
 
 /**
- * @brief Used to assign the option values to the correct struct members.
+ * @brief Same as above but for the area.
  *
- * @param argv Input option argument.
+ * @param ip_dbl dbl_t struct.
+ * @param optstirng String that contains the value.
+ * @param SI_derived_units Character for the SI derived units.
+ *
+ * @return Success or failure.
+ */
+int assign_values_units_metric_area(dbl_t* ip_dbl, char* optstring, char SI_derived_units);
+
+/**
+ * @brief Used to assign the option values to the correct struct members. Difference between this function and `assign_values_units_metric` is that it simply assigns the values instead of converting them based on a prefix. Therefore it is also used to simply assign the correct values and units.
+ *
  * @param ip_dbl dbl_t struct.
  * @param val Variable to store the value.
  * @param units String to use to set the units
  *
  * @return Success or failure.
  */
-int assign_values_no_units(dbl_t* ip_dbl, double* val, char* units);
+int assign_values_units_imperial(dbl_t* ip_dbl, double* val, char* units);
 
 /**
  * @brief Calculate using the IPC2221 standard, sourced from http://circuitcalculator.com/wordpress/2006/03/12/pcb-via-calculator/.
