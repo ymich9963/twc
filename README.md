@@ -52,7 +52,8 @@ Some sources for creating the tool are listed below,
 	- [Circuit Calculator](https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/)
 	- [Omnicalculator](https://www.omnicalculator.com/other/pcb-trace-width#how-to-calculate-the-width-of-a-pcb-trace)
 	- [SMP.us](https://www.smps.us/pcb-calculator.html)
-	- [NinjaCalc](https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152)
+	- [NinjaCalc - IPC2152](https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152)
+    - [NinjaCalc - IPC2221a](https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2221a)
 - Conversion calculators,
 	- [Convert-me](https://www.convert-me.com/en/convert/area/?u=mm2&v=0.0111) for area conversion
 	- [UnitConverters](https://www.unitconverters.net/length/mil-to-millimeter.htm)

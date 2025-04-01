@@ -11,6 +11,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 int get_options(int argc, char** restrict argv, ip_t* restrict ip)
 {
     double val = 0.0f; /* Temporary value to store the argument */
+    dbl_t conversion = {0}; /* Store the conversion */
 
     if (argc == 1) {
         printf(WELCOME_STR);
@@ -28,13 +29,6 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
 
         if (!(strcmp("--version", argv[i]))) {
             printf(VERSION_STR);
-
-            return 1;
-        }
-
-        /* Important to check when using the default numerical behaviour */
-        if (argc == 2) {
-            fprintf(stderr, "%s\n", FEW_ARGS_STR);
 
             return 1;
         }
@@ -60,15 +54,13 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
         }
 
         if (!(strcmp("-w-oz", argv[i])) || !(strcmp("--copper-weight-oz", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->copper_weight, &val, "oz/ft^2"));
+            CHECK_RET(assign_values_units_imperial(&ip->copper_weight, argv[i + 1], "oz/ft^2"));
             i++;
             continue;
         }
 
         if (!(strcmp("-w-mil", argv[i])) || !(strcmp("--copper-weight-mil", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->copper_weight, &val, "mil"));
+            CHECK_RET(assign_values_units_imperial(&ip->copper_weight, argv[i + 1], "mil"));
             ip->copper_weight.val = CONV_MIL_TO_OZFT2(ip->copper_weight.val); /* Convert back to oz/ft^2 for the calculations to work */
             i++;
             continue;
@@ -107,30 +99,41 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
         }
 
         if (!(strcmp("-l-mil", argv[i])) || !(strcmp("--trace-length-mil", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->trace_length, &val, "mil"));
+            CHECK_RET(assign_values_units_imperial(&ip->trace_length, argv[i + 1], "mil"));
             ip->trace_length.val = CONV_MIL_TO_MM(ip->trace_length.val);
+            i++;
+            continue;
+        }
+
+        if (!(strcmp("-l-in", argv[i])) || !(strcmp("--trace-length-mil", argv[i]))) {
+            CHECK_RET(assign_values_units_imperial(&ip->trace_length, argv[i + 1], "in"));
+            ip->trace_length.val = CONV_IN_TO_MM(ip->trace_length.val);
             i++;
             continue;
         }
 
         if (!(strcmp("-t", argv[i])) || !(strcmp("--pcb-thickness", argv[i]))) {
             CHECK_RET(assign_values_units_metric(&ip->pcb_thickness, argv[i + 1], 'm'));
-            ip->pcb_thickness.val = CONV_MM_TO_MIL(ip->pcb_thickness.val);
+            ip->pcb_thickness.val = CONV_M_TO_MIL(ip->pcb_thickness.val);
             i++;
             continue;
         }
 
         if (!(strcmp("-t-mil", argv[i])) || !(strcmp("--pcb-thickness-mil", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->pcb_thickness, &val, "mil"));
+            CHECK_RET(assign_values_units_imperial(&ip->pcb_thickness, argv[i + 1], "mil"));
+            i++;
+            continue;
+        }
+
+        if (!(strcmp("-t-in", argv[i])) || !(strcmp("--pcb-thickness-mil", argv[i]))) {
+            CHECK_RET(assign_values_units_imperial(&ip->pcb_thickness, argv[i + 1], "mil"));
+            ip->pcb_thickness.val = CONV_IN_TO_MIL(ip->pcb_thickness.val);
             i++;
             continue;
         }
 
         if (!(strcmp("-e", argv[i])) || !(strcmp("--pcb-thermal-conductivity", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->pcb_thermal_cond, &val, "W/mK"));
+            CHECK_RET(assign_values_units_imperial(&ip->pcb_thermal_cond, argv[i + 1], "W/mK"));
             ip->pcb_thermal_cond.val = CONV_WmK_TO_BTUhftF(ip->pcb_thermal_cond.val);
             i++;
             continue;
@@ -138,22 +141,20 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
 
         if (!(strcmp("-p", argv[i])) || !(strcmp("--plane-area", argv[i]))) {
             CHECK_RET(assign_values_units_metric_area(&ip->plane_area, argv[i + 1], 'm'));
-            ip->plane_area.val = CONV_CM2_TO_INCH2(ip->plane_area.val);
+            ip->plane_area.val = CONV_M2_TO_IN2(ip->plane_area.val);
             i++;
             continue;
         }
 
         if (!(strcmp("-p-in2", argv[i])) || !(strcmp("--plane-area-in2", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->plane_area, &val, "in^2"));
+            CHECK_RET(assign_values_units_imperial(&ip->plane_area, argv[i + 1], "in^2"));
             i++;
             continue;
         }
 
-        if (!(strcmp("-d", argv[i])) || !(strcmp("-d-mil", argv[i])) || !(strcmp("--plane-distance", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_LIMITS(val);
-            CHECK_RET(assign_values_units_imperial(&ip->plane_distance, &val, "mil"));
+        if (!(strcmp("-p-mil2", argv[i])) || !(strcmp("--plane-area-mil2", argv[i]))) {
+            CHECK_RET(assign_values_units_metric_area(&ip->plane_area, argv[i + 1], 'm'));
+            ip->plane_area.val = CONV_MIL2_TO_IN2(ip->plane_area.val);
             i++;
             continue;
         }
@@ -165,16 +166,27 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             continue;
         }
 
+        if (!(strcmp("-d-mil", argv[i])) || !(strcmp("--plane-distance-mil", argv[i]))) {
+            CHECK_RET(assign_values_units_imperial(&ip->plane_distance, argv[i + 1], "mil"));
+            i++;
+            continue;
+        }
+
+        if (!(strcmp("-d-in", argv[i])) || !(strcmp("--plane-distance-in", argv[i]))) {
+            CHECK_RET(assign_values_units_imperial(&ip->plane_distance, argv[i + 1], "mil"));
+            ip->plane_distance.val = CONV_IN_TO_MIL(ip->plane_distance.val);
+            i++;
+            continue;
+        }
+
         if (!(strcmp("--resistivity", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->resistivity, &val, "\0"));
+            CHECK_RET(assign_values_units_imperial(&ip->resistivity, argv[i + 1], "\0"));
             i++;
             continue;
         }
 
         if (!(strcmp("--temperature-coefficient", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_RET(assign_values_units_imperial(&ip->a, &val, "\0"));
+            CHECK_RET(assign_values_units_imperial(&ip->a, argv[i + 1], "\0"));
             i++;
             continue;
         }
@@ -190,43 +202,50 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
         }
 
         /* Conversions */
-        if (!(strcmp("--convert-mil2-cm2", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_MIL2_TO_CM2(val));
+        if (!(strcmp("--convert-m-to-ozft2", argv[i]))) {
+            CHECK_RET(assign_values_units_metric_area(&conversion, argv[i + 1], '\0'));
+            printf("\n%lf\n\n", CONV_M_TO_OZFT2(val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
 
-        if (!(strcmp("--convert-mil2-mm2", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_MIL2_TO_MM2(val));
+        if (!(strcmp("--convert-m-to-mil", argv[i]))) {
+            CHECK_RET(assign_values_units_metric_area(&conversion, argv[i + 1], '\0'));
+            printf("\n%lf\n\n", CONV_M_TO_MIL(val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
 
-        if (!(strcmp("--convert-mm2-mil2", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_MM2_TO_MIL2(val));
+        if (!(strcmp("--convert-m2-to-in2", argv[i]))) {
+            CHECK_RET(assign_values_units_metric_area(&conversion, argv[i + 1], '\0'));
+            printf("\n%lf\n\n", (conversion.val));
+            printf("\n%lf\n\n", CONV_M2_TO_IN2(conversion.val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
 
-        if (!(strcmp("--convert-cm2-in2", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_CM2_TO_INCH2(val));
+        if (!(strcmp("--convert-m2-to-mil2", argv[i]))) {
+            CHECK_RET(assign_values_units_metric_area(&conversion, argv[i + 1], '\0'));
+            printf("\n%lf\n\n", (conversion.val));
+            printf("\n%lf\n\n", CONV_M2_TO_MIL2(conversion.val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
 
-        if (!(strcmp("--convert-mil-ozft2", argv[i]))) {
+        if (!(strcmp("--convert-mil-to-mm", argv[i]))) {
+            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
+            CHECK_LIMITS(val);
+            printf("\n%lf\n\n", CONV_MIL_TO_MM(val));
+            printf("Converted using the TWC.\n");
+
+            return 1;
+        }
+
+        if (!(strcmp("--convert-mil-to-ozft2", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_MIL_TO_OZFT2(val));
@@ -235,25 +254,24 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-mm-ozft2", argv[i]))) {
+        if (!(strcmp("--convert-mil2-to-cm2", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_MM_TO_OZFT2(val));
+            printf("\n%lf\n\n", CONV_MIL2_TO_CM2(val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
 
-        if (!(strcmp("--convert-um-ozft2", argv[i]))) {
+        if (!(strcmp("--convert-mil2-to-mm2", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_UM_TO_OZFT2(val));
+            printf("\n%lf\n\n", CONV_MIL2_TO_MM2(val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
-
-        if (!(strcmp("--convert-ozft2-mil", argv[i]))) {
+        if (!(strcmp("--convert-ozft2-to-mil", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_OZFT2_TO_MIL(val));
@@ -262,7 +280,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-ozft2-mm", argv[i]))) {
+        if (!(strcmp("--convert-ozft2-to-mm", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_OZFT2_TO_MM(val));
@@ -271,7 +289,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-ozft2-um", argv[i]))) {
+        if (!(strcmp("--convert-ozft2-to-um", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_OZFT2_TO_UM(val));
@@ -280,25 +298,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-mm-mil", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_MM_TO_MIL(val));
-            printf("Converted using the TWC.\n");
-
-            return 1;
-        }
-
-        if (!(strcmp("--convert-mil-mm", argv[i]))) {
-            CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
-            CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_CM2_TO_INCH2(val));
-            printf("Converted using the TWC.\n");
-
-            return 1;
-        }
-
-        if (!(strcmp("--convert-F-C", argv[i]))) {
+        if (!(strcmp("--convert-F-to-C", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_FAHR_TO_CELS(val));
@@ -307,7 +307,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-C-F", argv[i]))) {
+        if (!(strcmp("--convert-C-to-F", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_CELS_TO_FAHR(val));
@@ -316,7 +316,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-WmK-BTUhftF", argv[i]))) {
+        if (!(strcmp("--convert-WmK-to-BTUhftF", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_WmK_TO_BTUhftF(val));
@@ -325,7 +325,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-BTUhftF-WmK", argv[i]))) {
+        if (!(strcmp("--convert-BTUhftF-to-WmK", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
             printf("\n%lf\n\n", CONV_BTUhftF_TO_WmK(val));
@@ -481,11 +481,13 @@ int assign_values_units_metric_area(dbl_t* ip_dbl, char* optstring, char SI_deri
     return 0;
 }
 
-int assign_values_units_imperial(dbl_t* ip_dbl, double* val, char* units)
+int assign_values_units_imperial(dbl_t* ip_dbl, char* optstring, char* units)
 {
-    CHECK_LIMITS(*val);
-    ip_dbl->outval = *val;
-    ip_dbl->val = *val;
+    double val = 0.0f;
+    CHECK_RES(sscanf(optstring, "%lf", &val));
+    CHECK_LIMITS(val);
+    ip_dbl->outval = val;
+    ip_dbl->val = val;
     ip_dbl->units = units;
 
     return 0;
@@ -686,7 +688,7 @@ void set_defv_IPC2152_A(ip_t* restrict ip)
     ip->plane_distance.units = "\0";
 
     ip->pcb_thickness.outval = 1.6;
-    ip->pcb_thickness.val = CONV_MM_TO_MIL(1.6);
+    ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
     ip->pcb_thickness.units = "mm";
 
     ip->resistivity.outval = 1.72e-8; // Annealed copper
@@ -733,7 +735,7 @@ void set_defv_IPC2152_B(ip_t* restrict ip)
     ip->pcb_thermal_cond.units = "W/mK";
 
     ip->pcb_thickness.outval = 1.6;
-    ip->pcb_thickness.val = CONV_MM_TO_MIL(1.6);
+    ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
     ip->pcb_thickness.units = "mm";
 
     ip->resistivity.outval = 1.72e-8; // Annealed copper
@@ -1029,10 +1031,18 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
             ip->a.outval, ip->a.units, " ", ip->resistivity.outval, ip->resistivity.units);
 
     fprintf(file,
+            "\n- Calculations limitations are listed below, with inputs outside these limitations being more error prone,\n"
+            "\t+ Currents up to 35 A external and 17.5 A internal. \n"
+            "\t+ Temperature rises from 10 C to 100 C.\n"
+            "\t+ Trace widths between 0 and 10.16mm.\n"
+            "\t+ Copper weights between 0.5 and 3 oz/ft^2.\n"
+            "\t+ No vias along the length of the trace.\n");
+
+    fprintf(file,
             "\n- Constants and method used were derived from http://circuitcalculator.com/wordpress/2006/03/12/pcb-via-calculator/.\n");
 
     fprintf(file,
-            "\n- Used the %s standard, Method %c.\n", ip->standard.str, ip->method);
+            "\n- TWC used the %s standard, Method %c.\n", ip->standard.str, ip->method);
 
     fprintf(file, DISCLAIMER_STR);
 
@@ -1087,7 +1097,7 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
             "\n- Constants and method used were derived from https://www.smps.us/pcb-calculator.html.\n");
 
     fprintf(file,
-            "\n- Used the %s standard, Method %c.\n", ip->standard.str, ip->method);
+            "\n- TWC used the %s standard, Method %c.\n", ip->standard.str, ip->method);
 
     fprintf(file, DISCLAIMER_STR);
 
@@ -1141,7 +1151,7 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
             "\n- Constants and method used were derived from https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152.\n");
 
     fprintf(file,
-            "\n- Used the %s standard, Method %c.\n", ip->standard.str, ip->method);
+            "\n- TWC used the %s standard, Method %c.\n", ip->standard.str, ip->method);
 
     fprintf(file, DISCLAIMER_STR);
 
@@ -1152,48 +1162,50 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 int output_help()
 {
     printf("\nHelp for the Trace Width Calculator (TWC). Specify units with the long options, listed below the short options."
-            "\n\t-c[-A],\t\t--current <Current [A]>\t\t\t\t= Input the trace current in Amps.\n"
-            "\t-c-mA,\t\t--current-mA\n"
-            "\n\t-w[-oz],\t--copper-weight <Copper Weight [oz/ft^2]>\t= Input the copper weight in oz per ft^2.\n"
+            "\n\t-c,\t\t--current <Current [A]>\t\t\t\t= Input the trace current in Amps.\n"
+            "\n\t-w,\t--copper-weight <Copper Weight [m]>\t= Input the copper weight in meters. Use the other options below for imperial units.\n"
             "\t-w-mil,\t\t--copper-weight-mil\n"
-            "\t-w-mm,\t\t--copper-weight-mm\n"
-            "\t-w-um,\t\t--copper-weight-um\n"
+            "\t-w-oz,\t\t--copper-weight-oz\n"
             "\n\t-r[-C],\t\t--temperature-rise <Temperature Rise [C]>\t= Input the maximum allowed temperature rise in C.\n"
             "\t-r-F,\t\t--temperature-rise-F\n"
             "\n\t-a[-C],\t\t--temperature-ambient <Ambient Temperature [C]>\t= Input the ambient temperature of the trace in C.\n"
             "\t-r-F,\t\t--temperature-ambient-F\n"
-            "\n\t-l[-cm],\t--trace--length <Trace Length [cm]>\t\t= Input the trace length in centimeters.\n"
-            "\t-l-mm,\t\t--trace--length-mm\n"
+            "\n\t-l,\t--trace--length <Trace Length [m]>\t\t= Input the trace length in centimeters. Use the other options below for imperial units.\n"
+            "\t-l,\t\t--trace--length-mm\n"
             "\t-l-mil,\t\t--trace--length-mil\n"
-            "\n\t-t[-mm],\t--pcb-thickness <Thickness [mm]>\t\t= Input the PCB thickness in milimeters.\n"
+            "\t-l-in,\t\t--trace--length-inches\n"
+            "\n\t-t,\t--pcb-thickness <Thickness [m]>\t\t= Input the PCB thickness in meters. Use the other options below for imperial units.\n"
             "\t-t-mil,\t\t--pcb-thickness-mil\n"
+            "\t-t-in,\t\t--pcb-thickness-in\n"
             "\n\t-e,\t\t--pcb-thermal-conductivity <Therm. Con. [W/mK]>\t= Input the PCB thermal conductivity in Watts per meter Kelvin.\n"
-            "\n\t-p[-in2],\t--plane-cs-area <Plane Area [in^2]>\t\t= Input the plane cs_area in inches squared.\n"
-            "\t-p-cm2,\t\t--plane-cs-area-cm2\n"
-            "\n\t-d[-mil],\t--plane-distance <Plane Distance [mil]>\t\t= Input the plane distance in mil.\n"
-            "\t-d-mm,\t\t--plane-distance-mm\n"
+            "\n\t-p,\t--plane-cs-area <Plane Area [m^2]>\t\t= Input the plane cross sectional area in meters squared. Use the other options below for imperial units.\n"
+            "\t-p-in2,\t\t--plane-cs-area-in2\n"
+            "\t-p-mil2,\t\t--plane-cs-area-mil2\n"
+            "\n\t-d,\t--plane-distance <Plane Distance [m]>\t\t= Input the plane distance in meters. Use the other options below for imperial units.\n"
+            "\t-d-mil,\t\t--plane-distance-mil\n"
+            "\t-d-in,\t\t--plane-distance-inches\n"
             "\n\t\t--resistivity <Resistivity [Ohm m]>\t\t\t= Input the resistivity in Ohm meters.\n"
             "\n\t\t--temperature-coefficient <Temp. Coefficient [1/C]>\t= Input the temperature coefficient.\n"
             "\n\t-o,\t\t--output <File Name>\t\t\t\t= Write the name of the outputted file. Use '.txt' to create a text file. Use a single '.' to auto-generate\n\t\t\t\t\t\t\t\t\t  the name based on date/time. Can also write the full path to the file, e.g. 'C:/Users/user/output.txt'\n\t\t\t\t\t\t\t\t\t  or stop at 'C:/Users/user/' to use the auto-generated file name.\n"
             "\n\t-m, \t\t--metric\t\t\t\t\t= Make the output units be metric.\n"
             "\n\t-i, \t\t--imperial\t\t\t\t\t= Make the output units be imperial. Default behaviour, therefore just implemented for completion.\n"
             "\n\n\t\t\tCONVERSIONS\n"
-            "\n\t--convert-mil2-cm2\t= From mils sq. to centimeters sq."
-            "\n\t--convert-mil2-mm2\t= From mils sq. to milimeters sq."
-            "\n\t--convert-mm2-mil2\t= From milimeters sq. to mil sq."
-            "\n\t--convert-cm2-in2\t= From cm sq. to inches sq."
-            "\n\t--convert-mil-ozft2\t= From mils to ounce per foot sq."
-            "\n\t--convert-mm-ozft2\t= From milimeters to ounce per foot sq."
-            "\n\t--convert-um-ozft2\t= From micrometers to ounce per foot sq."
-            "\n\t--convert-ozft2-mil\t= From ounce per foot sq. to mils."
-            "\n\t--convert-ozft2-mm\t= From ounce per foot sq. to milimeters."
-            "\n\t--convert-ozft2-um\t= From ounce per foot sq. to micrometers."
-            "\n\t--convert-mm-mil\t= From milimeters to mils."
-            "\n\t--convert-mil-mm\t= From mils to milimeters."
-            "\n\t--convert-F-C\t\t= From Fahrenheit to Celsius."
-            "\n\t--convert-C-F\t\t= From Celsius to Fahrenheit."
-            "\n\t--convert-WmK-BTUhftF\t= From Watts per mili Kelvin to BTU/h*ft*F."
-            "\n\t--convert-BTUhftF-WmK\t= From BTU/h*ft*F to Watts per mili Kelvin."
+            "\nUsage example 'twc --conversion-m-to-ozft2 <Value>'. Can use an SI prefix in the input when converting from meters.\n"
+            "\n\t--convert-m-to-ozft2\t= From meters to ox per foot sq."
+            "\n\t--convert-m-to-mil\t= From meters to mil."
+            "\n\t--convert-m2-to-in2\t= From meters sq. to inches sq."
+            "\n\t--convert-m2-to-mil2\t= From meters sq. to mil sq."
+            "\n\t--convert-mil-to-mm\t= From mils to milimeters."
+            "\n\t--convert-mil-to-ozft2\t= From mils to ounce per foot sq."
+            "\n\t--convert-mil2-to-cm2\t= From mils sq. to centimeters sq."
+            "\n\t--convert-mil2-to-mm2\t= From mils sq. to milimeters sq."
+            "\n\t--convert-ozft2-to-mil\t= From ounce per foot sq. to mils."
+            "\n\t--convert-ozft2-to-mm\t= From ounce per foot sq. to milimeters."
+            "\n\t--convert-ozft2-to-um\t= From ounce per foot sq. to micrometers."
+            "\n\t--convert-F-to-C\t\t= From Fahrenheit to Celsius."
+            "\n\t--convert-C-to-F\t\t= From Celsius to Fahrenheit."
+            "\n\t--convert-WmK-to-BTUhftF\t= From Watts per mili Kelvin to BTU/h*ft*F."
+            "\n\t--convert-BTUhftF-to-WmK\t= From BTU/h*ft*F to Watts per mili Kelvin."
             "\n\n");
 
     return EXIT_SUCCESS;

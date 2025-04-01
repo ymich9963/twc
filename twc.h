@@ -29,21 +29,32 @@
 #define	DISCLAIMER_STR "\nDesign assistance by the TWC tool is provided with no liability whatsover. For final decisions on electronics designs, please consult an actual qualified person.\n"
 
 /* Conversion macros */
+
+/* Meters to X */
+#define	CONV_M_TO_MIL(x) ((x) * 39370.07874)
+#define	CONV_M_TO_OZFT2(x) ((x) * 39370.07874 / 1.378)
+#define	CONV_M2_TO_MIL2(x) ((x) * 1e7 / (2.54 * 2.54))
+#define	CONV_M2_TO_IN2(x) ((x) * 1e4 / (2.54 * 2.54))
+
+/* Inches to X */
+#define	CONV_IN_TO_M(x) ((x) * 0.0254)
+#define	CONV_IN_TO_MM(x) ((x) * 25.4)
+#define	CONV_IN_TO_MIL(x) ((x) * 1e3)
+
+/* Mils to X */
+#define	CONV_MIL_TO_M(x) ((x) * 0.0000254)
+#define	CONV_MIL_TO_MM(x) ((x) * 0.0254)
+#define	CONV_MIL_TO_OZFT2(x) ((x) / 1.378)   // most sources say 1.37, few others say 1.378.
 #define	CONV_MIL2_TO_CM2(x) ((x) * 0.00254 * 0.00254)
 #define	CONV_MIL2_TO_MM2(x) ((x) * 0.0254 * 0.0254)
-#define	CONV_MM2_TO_MIL2(x) ((x) / 0.0254 / 0.0254)
-#define	CONV_M2_TO_INCH2(x) ((x) / (2.54 * 2.54) * 1e-2)
-#define	CONV_CM2_TO_INCH2(x) ((x) / (2.54 * 2.54))
-#define	CONV_MIL_TO_OZFT2(x) ((x) / 1.378)   // most sources say 1.37, few others say 1.378.
-#define	CONV_M_TO_OZFT2(x) ((x) * 39.37007874 / 1.378 * 1e3)
-#define	CONV_MM_TO_OZFT2(x) ((x) * 39.37007874 / 1.378)
-#define	CONV_UM_TO_OZFT2(x) ((x) * 39.37007874 / 1.378 * 1e-3)
+#define	CONV_MIL2_TO_IN2(x) ((x) * 0.000001)
+
+/* Oz/ft^2 to X */
 #define	CONV_OZFT2_TO_MIL(x) ((x) * 1.378)
 #define	CONV_OZFT2_TO_MM(x) ((x) * 1.378 * 0.0254)
 #define	CONV_OZFT2_TO_UM(x) ((x) * 1.378 * 0.0254 * 1e3)
-#define	CONV_M_TO_MIL(x) ((x) * 39.37007874 * 1e-3)
-#define	CONV_MM_TO_MIL(x) ((x) * 39.37007874)
-#define	CONV_MIL_TO_MM(x) ((x) * 0.0254)
+
+/* Other to X */
 #define	CONV_FAHR_TO_CELS(x) (((x) - 32) / 1.8)
 #define	CONV_CELS_TO_FAHR(x) (((x) * 1.8) + 32)
 #define	CONV_WmK_TO_BTUhftF(x) ((x) / 1.730735)
@@ -199,7 +210,7 @@ int assign_values_units_metric_area(dbl_t* ip_dbl, char* optstring, char SI_deri
  *
  * @return Success or failure.
  */
-int assign_values_units_imperial(dbl_t* ip_dbl, double* val, char* units);
+int assign_values_units_imperial(dbl_t* ip_dbl, char* optstring, char* units);
 
 /**
  * @brief Calculate using the IPC2221 standard, sourced from http://circuitcalculator.com/wordpress/2006/03/12/pcb-via-calculator/.

@@ -21,7 +21,7 @@
 //TODO: Add more methods
 //TODO: Put a sample of the help option in the docs
 //TODO: Add a --comment/description option to add some custom text to the output
-//TODO: Remove any unecessary conversions to make it easier to use
+//TODO: Add a conversion function as a parameter like CONV_M_MIL(1) and multiply that variable by the value
 
 #include "twc.h"
 
