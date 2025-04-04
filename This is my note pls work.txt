@@ -1,0 +1,37 @@
+
+Current:		1.000000	[A]
+Copper Weight:		1.000000	[oz/ft^2]
+Temperature, Rise:	10.000000	[C]
+Temperature, Ambient:	25.000000	[C]
+Trace Length:		0.000000	[]
+
+
+External Layers
+Area: 			0.010514	[mm^2]
+Width:			0.300376	[mm]
+
+
+Internal Layers
+Area: 			0.027350	[mm^2]
+Width:			0.781411	[mm]
+
+
+- Values of k used in calculating the cs_area:
+
+    k = 0.0240000 (Internal layers)
+k = 0.0480000 (External layers)
+
+    - Use trace length with '-l' to get voltage, resistance and power calculations.
+
+    - Calculations limitations are listed below, with inputs outside these limitations being more error prone,
+    + Currents up to 35 A external and 17.5 A internal. 
+    + Temperature rises from 10 C to 100 C.
+    + Trace widths between 0 and 10.16mm.
+    + Copper weights between 0.5 and 3 oz/ft^2.
+    + No vias along the length of the trace.
+
+    - Constants and method used were derived from http://circuitcalculator.com/wordpress/2006/03/12/pcb-via-calculator/.
+
+    - TWC used the IPC2152 standard, Method A.
+
+    Design assistance by the TWC tool is provided with no liability whatsover. For final decisions on electronics designs, please consult an actual qualified person.

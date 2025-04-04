@@ -16,6 +16,7 @@
 #include <time.h>
 
 /* Constants */
+#define MAX_NOTE_CHAR_COUNT 301
 #define	k_INT 0.024f
 #define	k_EXT 0.048f
 #define	VAL_MAX 999999999.999999999f
@@ -143,6 +144,7 @@ typedef struct IP {
 	dbl_t copper_weight;       // [oz/ft^2]
 
 	/* Optional Inputs */
+	char note[MAX_NOTE_CHAR_COUNT]; // Add a note about this output 
 	std_t standard;             // IPC standard
 	char method;                // Method to use for calculations
 	dbl_t temp_rise;            // [Celsius]

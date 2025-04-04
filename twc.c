@@ -33,6 +33,12 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
+        if (!(strcmp("-n", argv[i])) || !(strcmp("--note", argv[i]))) {
+            strcpy(ip->note, argv[i + 1]); 
+            i++;
+            continue;
+        }
+
         if (!(strcmp("-o", argv[i])) || !(strcmp("--output", argv[i]))) {
             ip->ofile.oflag = 1;
             set_output_file(&ip->ofile, argv[i + 1]);
@@ -511,12 +517,10 @@ int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
         if (!(strcmp("--standard", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%s", strval));
             CHECK_RET(check_standard(strval, standard_arr, ssize, &index));
-            memcpy(ip->standard.str, strval, STD_NAME_LEN * sizeof(char));
+            strcpy(ip->standard.str, strval); 
             ip->standard.num = standard_const[index];
             i++;
             continue;
-        } else {
-            memcpy(ip->standard.str, standard_arr[1], STD_NAME_LEN * sizeof(char));
         }
 
         if (!(strcmp("--method", argv[i]))) {
@@ -526,6 +530,16 @@ int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
             i++;
             continue;
         }
+    }
+
+    /* Sets up the string when not specifying standard */
+    if (ip->standard.num == IPC2152 && ip->standard.str[0] == '\0') {
+            strcpy(ip->standard.str, "IPC2152"); 
+    }
+
+    /* Sets up the string when not specifying method */
+    if (ip->standard.num == IPC2152 && ip->method == '\0') {
+            ip->method = 'A'; 
     }
 
     return 0;
@@ -759,17 +773,12 @@ int sel_functions(ip_t* restrict ip)
         case IPC2221:
 
             switch (ip->method) {
-                case 'A':
-
+                default:
                     ip->defv = &set_defv_IPC2221;
                     ip->proc = &calcs_IPC2221;
                     ip->outu = &set_outu_IPC2221;
                     ip->outp = &output_results_IPC2221;
                     break;
-                default:
-                    fprintf(stderr, "\nMethod %c for the IPC-%d doesn't exist.\n", ip->method, ip->standard.num);
-
-                    return 1;
             }
 
             break;
@@ -977,6 +986,8 @@ double calc_power_loss(ip_t* ip, double vdrop)
 
 int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+
     fprintf(file,
             "\n"
             "Current:\t\t%lf\t[%s]\n"
@@ -1042,7 +1053,7 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
             "\n- Constants and method used were derived from http://circuitcalculator.com/wordpress/2006/03/12/pcb-via-calculator/.\n");
 
     fprintf(file,
-            "\n- TWC used the %s standard, Method %c.\n", ip->standard.str, ip->method);
+            "\n- TWC used the %s standard.\n", ip->standard.str);
 
     fprintf(file, DISCLAIMER_STR);
 
@@ -1051,6 +1062,8 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+
     fprintf(file,
             "\n"
             "Current:\t\t%lf\t[%s]\n"
@@ -1106,6 +1119,8 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+
     fprintf(file,
             "\n"
             "Current:\t\t%lf\t[%s]\n"
@@ -1162,6 +1177,7 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 int output_help()
 {
     printf("\nHelp for the Trace Width Calculator (TWC). Specify units with the long options, listed below the short options."
+            "\n\t-n,\t\t--note \"<Text>\"\t\t\t\t= Add a note to the start of the output. Make sure to put the note between quotes.\n"
             "\n\t-c,\t\t--current <Current [A]>\t\t\t\t= Input the trace current in Amps.\n"
             "\n\t-w,\t--copper-weight <Copper Weight [m]>\t= Input the copper weight in meters. Use the other options below for imperial units.\n"
             "\t-w-mil,\t\t--copper-weight-mil\n"
