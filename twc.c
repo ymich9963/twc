@@ -1,9 +1,9 @@
 /*
-twc : Trace Width Calculator.
-Copyright (C) 2024 Yiannis Michael (ymich9963)
+    twc : Trace Width Calculator.
+    Copyright (C) 2024 Yiannis Michael (ymich9963)
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "twc.h"
@@ -781,15 +781,19 @@ void set_output_file(ofile_t* restrict ofile, char* restrict optarg)
 void calcs_IPC2221(ip_t* restrict ip, op_t* restrict op)
 {
     op->extl.cs_area.val = pow(ip->current.val / (k_EXT * pow(ip->temp_rise.val, 0.44)), 1 / 0.725);
-    calc_width_res_vdrop_ploss(ip, &op->extl);
+    op->extl.trace_width.val = calc_trace_width_mils(ip, op->extl.cs_area.val);
+    calc_resistance_vdrop_ploss(ip, &op->extl);
 
     op->intl.cs_area.val = pow(ip->current.val / (k_INT * pow(ip->temp_rise.val, 0.44)), 1 / 0.725);
-    calc_width_res_vdrop_ploss(ip, &op->intl);
+    op->intl.trace_width.val = calc_trace_width_mils(ip, op->intl.cs_area.val);
+    calc_resistance_vdrop_ploss(ip, &op->intl);
 }
 
 void calcs_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
 {
+    /* Uncorrected area and trace width */
     op->layer.cs_area.val = pow(ip->current.val / (0.089710902134 * pow(ip->temp_rise.val, 0.39379253898)), 1 / (0.50382053698 * pow(ip->temp_rise.val, 0.038495772461)));
+    op->layer.trace_width.val = calc_trace_width_mils(ip, op->layer.cs_area.val);
 
     /* Coefficients array */
     double coeff_arr[6][4] = {
@@ -825,14 +829,15 @@ void calcs_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
     /* Corrected Trace Width */
     op->layer.corr_trace_width.val = calc_trace_width_mils(ip, op->layer.corr_cs_area.val);
 
-    calc_width_res_vdrop_ploss(ip, &op->layer);
+    calc_resistance_vdrop_ploss(ip, &op->layer);
 }
 
 void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
 {
-    /* Different one on the website, and different one in the website code */
-    op->layer.cs_area.val = (110.515 * pow(ip->temp_rise.val, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->temp_rise.val, -0.102) + 1.129);
+    /* Different equation for area listed on the website, and different one in the website code */
     // op->layer.cs_area.val = (117.555 * pow(ip->temp_rise.val, -0.913) + 1.15) * pow(ip->current.val, 0.84 * pow(ip->temp_rise.val, -0.018) + 1.159); 
+    op->layer.cs_area.val = (110.515 * pow(ip->temp_rise.val, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->temp_rise.val, -0.102) + 1.129);
+    op->layer.trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.cs_area.val);
 
     /* Copper weight correction factor */
     if (ip->copper_weight.val == 2) {
@@ -873,9 +878,7 @@ void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
     /* Corrected Trace Width */
     op->layer.corr_trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.corr_cs_area.val) * 1.378; // multiply by 1.378 to remove the conversion inside the function
 
-    calc_width_res_vdrop_ploss(ip, &op->layer);
-
-    op->layer.trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.cs_area.val) * 1.378; // overwrites the result from calc_width_res_vdrop_ploss()
+    calc_resistance_vdrop_ploss(ip, &op->layer);
 }
 
 void calcs_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
@@ -890,24 +893,16 @@ void calcs_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
     /* Internal layers */
     op->intl.trace_width.val = pow(ip->current.val/(K1 * pow(ip->temp_rise.val, 0.5f) * pow(copper_weight_mil, 0.76)), 1/0.575);
     op->intl.cs_area.val = op->intl.trace_width.val * copper_weight_mil;
-
-    /* Since in this method trace width is calculated before area, just call the Resistance, Vdrop, and Ploss functions separately */
-    op->intl.resistance.val = ip->trace_length.val > 0 ? calc_resistance(ip, op->intl.cs_area.val) : 0.0f;
-    op->intl.voltage_drop.val = calc_vdrop(ip, op->intl.resistance.val);
-    op->intl.power_loss.val = calc_power_loss(ip, op->intl.voltage_drop.val);
+    calc_resistance_vdrop_ploss(ip, &op->intl);
 
     /* External layers */
     op->extl.trace_width.val = pow(ip->current.val/(K2 * pow(ip->temp_rise.val, 0.5f) * pow(copper_weight_mil, 0.5)), 1/0.575);
     op->extl.cs_area.val = op->extl.trace_width.val * copper_weight_mil;
-
-    op->extl.resistance.val = ip->trace_length.val > 0 ? calc_resistance(ip, op->extl.cs_area.val) : 0.0f;
-    op->extl.voltage_drop.val = calc_vdrop(ip, op->extl.resistance.val);
-    op->extl.power_loss.val = calc_power_loss(ip, op->extl.voltage_drop.val);
+    calc_resistance_vdrop_ploss(ip, &op->extl);
 }
 
-void calc_width_res_vdrop_ploss(ip_t* restrict ip, layer_t* restrict layer)
+void calc_resistance_vdrop_ploss(ip_t* restrict ip, layer_t* restrict layer)
 {
-    layer->trace_width.val = calc_trace_width_mils(ip, layer->cs_area.val);
     layer->resistance.val = ip->trace_length.val > 0 ? calc_resistance(ip, layer->cs_area.val) : 0.0f;
     layer->voltage_drop.val = calc_vdrop(ip, layer->resistance.val);
     layer->power_loss.val = calc_power_loss(ip, layer->voltage_drop.val);

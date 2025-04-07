@@ -253,7 +253,7 @@ int assign_values_units_imperial(dbl_t* ip_dbl, char* optstring, char* units);
 void calcs_IPC2221(ip_t* ip, op_t* op);
 
 /**
- * @brief Calculate using the IPC2152 standard, Method A which is sourced from https://www.smps.us/pcb-calculator.html.
+ * @brief Calculate using the IPC2152 standard, Method A which is sourced from https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152.
  *
  * @param ip Input struct to store the inputs.
  * @param op Output struct to store the outputs.
@@ -261,7 +261,7 @@ void calcs_IPC2221(ip_t* ip, op_t* op);
 void calcs_IPC2152_A(ip_t* ip, op_t* op);
 
 /**
- * @brief Calculate using the IPC2152 standard, Method B which is sourced from https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152.
+ * @brief Calculate using the IPC2152 standard, Method B which is sourced from https://www.smps.us/pcb-calculator.html.
  *
  * @param ip Input struct to store the inputs.
  * @param op Output struct to store the outputs.
@@ -387,7 +387,7 @@ char* get_time();
  * @param ip Input struct to get the inputs used in the calculation.
  * @param layer Output layer struct to store the results.
  */
-void calc_width_res_vdrop_ploss(ip_t* ip, layer_t* layer);
+void calc_resistance_vdrop_ploss(ip_t* ip, layer_t* layer);
 
 /**
  * @brief Used to calculate the width of the trace.
