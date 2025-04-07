@@ -16,11 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-//TODO: Add a conversion function as a parameter like CONV_M_MIL(1) and multiply that variable by the value
-//TODO: Add Sierra Circuits IPC2152 method
 //TODO: Put a sample of the help option in the docs
 //TODO: Describe in docs the workflow for development
 // Mention in docs that the default behaviour is metrimc
+//TODO: Add auto scaling of output units
 
 #include "twc.h"
 
@@ -35,15 +34,8 @@ int main(int argc, char** argv)
 	/* Output stream */
 	FILE* file = stdout;
 
-	/* Universal Defaults */
-    ip.note[0] = '\0';
-	ip.standard.num = IPC2152;
-	ip.standard.str[0] = '\0';
-	ip.method = '\0';
-	ip.uflag = 'm';
-	ip.resistivity.val = 1.724e-6;
-	ip.a.val = 3.93e-3;
-	ip.ofile.oflag = 0;
+	/* Set universal defaults */
+    set_universal_defaults(&ip);
 
 	/* Get the standard and the method for the calculations */
 	CHECK_ERR(get_standard_method(argc, argv, &ip));

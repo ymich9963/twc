@@ -32,6 +32,7 @@
 /* Conversion macros */
 
 /* Meters to X */
+#define	CONV_M_TO_IN(x) ((x) * 39.37007874)
 #define	CONV_M_TO_MIL(x) ((x) * 39370.07874)
 #define	CONV_M_TO_OZFT2(x) ((x) * 39370.07874 / 1.378)
 #define	CONV_M2_TO_MIL2(x) ((x) * 1e7 / (2.54 * 2.54))
@@ -46,6 +47,7 @@
 #define	CONV_MIL_TO_M(x) ((x) * 0.0000254)
 #define	CONV_MIL_TO_MM(x) ((x) * 0.0254)
 #define	CONV_MIL_TO_OZFT2(x) ((x) / 1.378)   // most sources say 1.37, few others say 1.378.
+#define	CONV_MIL2_TO_M2(x) ((x) * 0.0000254 * 0.0000254)
 #define	CONV_MIL2_TO_CM2(x) ((x) * 0.00254 * 0.00254)
 #define	CONV_MIL2_TO_MM2(x) ((x) * 0.0254 * 0.0254)
 #define	CONV_MIL2_TO_IN2(x) ((x) * 0.000001)
@@ -124,7 +126,7 @@ typedef struct OP {
 	intl_t intl;
 	extl_t extl;
 	layer_t layer;
-} op_t; /* Output layer struct */
+} op_t; /* Output struct */
 
 typedef struct CF {
 	double copper_weight;
@@ -137,7 +139,7 @@ typedef struct CF {
 
 typedef struct IP ip_t;
 
-/* Input Structure */
+
 typedef struct IP {
 	/* Mandatory Inputs */
 	dbl_t current;             // [A]
@@ -150,12 +152,12 @@ typedef struct IP {
 	dbl_t temp_rise;            // [Celsius]
 	dbl_t temp_ambient;         // [Celsius]
 	dbl_t trace_length;         // [cm]
-	dbl_t resistivity;          // [Ohm*cm]
 	dbl_t pcb_thickness;        // [mm]
 	dbl_t pcb_thermal_cond;     // [W/mK]
 	dbl_t plane_area;           // [in^2]
 	dbl_t plane_distance;       // [mils]
-	dbl_t a;                    // [1/C] :resistivity temperature coefficient
+	dbl_t a;                    // [1/C] :resistivity temperature coefficient at 20C
+	dbl_t resistivity;          // [Ohm*cm] :resistivity coefficient at 20C
 	cf_t cf;                    // Correction Factors
 	ofile_t ofile;              // Output file properties
 	char uflag;                 // Units flag
@@ -163,12 +165,40 @@ typedef struct IP {
 	void (*proc)(ip_t*, op_t*); // Calculation procedure
 	int (*outp)(ip_t*, op_t*, FILE* file); // Output function
 	int (*outu)(ip_t*, op_t*);  // Set output units
-} ip_t;
+} ip_t; /* Input Struct */
 
 enum {
 	IPC2152 = 2152,
 	IPC2221 = 2221,
 }; /* Standards Enumeration */
+
+/**
+ * @brief Set the default values on the struct members used by all standards and methods.
+ *
+ * @param ip Input struct.
+ */
+void set_universal_defaults(ip_t* ip);
+
+/**
+ * @brief Set default values needed for the IPC2221 calculations.
+ *
+ * @param ip Input struct to store the inputs.
+ */
+void set_defv_IPC2221(ip_t* ip);
+
+/**
+ * @brief Set default values needed for the IPC2152, Method A calculations.
+ *
+ * @param ip Input struct to store the inputs.
+ */
+void set_defv_IPC2152_A(ip_t* ip);
+
+/**
+ * @brief Set default values needed for the IPC2152, Method B calculations.
+ *
+ * @param ip Input struct to store the inputs.
+ */
+void set_defv_IPC2152_B(ip_t* ip);
 
 /**
  * @brief Get the options and arguments provided.
@@ -239,26 +269,12 @@ void calcs_IPC2152_A(ip_t* ip, op_t* op);
 void calcs_IPC2152_B(ip_t* ip, op_t* op);
 
 /**
- * @brief Set default values needed for the IPC2221 calculations.
+ * @brief Calculate using the IPC2152 standard, Method C which is sourced from https://twcalculator.app.protoexpress.com/.
  *
  * @param ip Input struct to store the inputs.
+ * @param op Output struct to store the outputs.
  */
-void set_defv_IPC2221(ip_t* ip);
-
-
-/**
- * @brief Set default values needed for the IPC2152, Method A calculations.
- *
- * @param ip Input struct to store the inputs.
- */
-void set_defv_IPC2152_A(ip_t* ip);
-
-/**
- * @brief Set default values needed for the IPC2152, Method B calculations.
- *
- * @param ip Input struct to store the inputs.
- */
-void set_defv_IPC2152_B(ip_t* ip);
+void calcs_IPC2152_C(ip_t* ip, op_t* op);
 
 /**
  * @brief Set the units for the IPC2221 outputs.
@@ -271,14 +287,34 @@ void set_defv_IPC2152_B(ip_t* ip);
 int set_outu_IPC2221(ip_t* ip, op_t* op);
 
 /**
- * @brief Set the units for the IPC2152 outputs.
+ * @brief Set the units for the IPC2152 Method A outputs.
  *
  * @param ip Input struct to store the inputs.
  * @param op Output struct to store the outputs.
  *
  * @return Success or failure.
  */
-int set_outu_IPC2152(ip_t* ip, op_t* op);
+int set_outu_IPC2152_A(ip_t* ip, op_t* op);
+
+/**
+ * @brief Set the units for the IPC2152 Method B outputs.
+ *
+ * @param ip Input struct to store the inputs.
+ * @param op Output struct to store the outputs.
+ *
+ * @return Success or failure.
+ */
+
+int set_outu_IPC2152_B(ip_t* ip, op_t* op);
+/**
+ * @brief Set the units for the IPC2152 Methods C output. This implementation doesn't any correction so it's much more similar to the IPC2221 implementation.
+ *
+ * @param ip Input struct to store the inputs.
+ * @param op Output struct to store the outputs.
+ *
+ * @return Success or failure.
+ */
+int set_outu_IPC2152_C(ip_t* ip, op_t* op);
 
 /**
  * @brief Get the chosen standard and method from the input options. Called before get_options() so that the correct default variables are set.
@@ -363,7 +399,7 @@ void calc_width_res_vdrop_ploss(ip_t* ip, layer_t* layer);
 double calc_trace_width_mils(ip_t* ip, double cs_area);
 
 /**
- * @brief Calculate the resistance of the trace. Resistivity gets converted to Ohm cm.
+ * @brief Calculate the resistance of the trace. The constants were copied from https://en.wikipedia.org/wiki/Electrical_resistivity_and_conductivity#Resistivity_and_conductivity_of_various_materials which also gave the reference temperature of 20C. 
  *
  * @param ip Input struct to get the required values.
  * @param cs_area Cross sectional area of the trace.
@@ -415,6 +451,15 @@ int output_results_IPC2152_A(ip_t* ip, op_t* op, FILE* file);
  * @param file Buffer to output the strings.
  */
 int output_results_IPC2152_B(ip_t* ip, op_t* op, FILE* file);
+
+/**
+ * @brief Outputted results when using the IPC2152, Method C.
+ *
+ * @param ip Input struct to store the inputs.
+ * @param op Output struct to store the outputs.
+ * @param file Buffer to output the strings.
+ */
+int output_results_IPC2152_C(ip_t* ip, op_t* op, FILE* file);
 
 /**
  * @brief Output the help string to the terminal.

@@ -8,6 +8,105 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "twc.h"
 
+void set_universal_defaults(ip_t* restrict ip)
+{
+    ip->note[0] = '\0';
+	ip->standard.num = IPC2152;
+	ip->standard.str[0] = '\0';
+	ip->method = '\0';
+	ip->uflag = 'm';
+	ip->ofile.oflag = 0;
+
+    ip->current.outval = 0;
+    ip->current.val = 0;
+    ip->current.units = "\0";
+
+    ip->copper_weight.outval = 0;
+    ip->copper_weight.val = 0;
+    ip->copper_weight.units = "\0";
+
+    ip->current.outval = 0;
+    ip->current.val = 0;
+    ip->current.units = "\0";
+
+    ip->copper_weight.outval = 0;
+    ip->copper_weight.val = 0;
+    ip->copper_weight.units = "\0";
+
+    ip->temp_rise.outval = 10;
+    ip->temp_rise.val = 10;
+    ip->temp_rise.units = "C";
+
+    ip->trace_length.outval = 0;
+    ip->trace_length.val = 0;
+    ip->trace_length.units = "\0";
+
+    ip->resistivity.outval = 1.72e-8; // Annealed copper
+    ip->resistivity.val = 1.72e-8;
+    ip->resistivity.units = "Ohm m";
+
+    ip->a.outval = 0.00393; // Annealed copper
+    ip->a.val = 0.00393;
+    ip->a.units = "1/C";
+}
+
+void set_defv_IPC2221(ip_t* restrict ip)
+{
+    ip->temp_ambient.outval = 25;
+    ip->temp_ambient.val = 25;
+    ip->temp_ambient.units = "C";
+}
+
+void set_defv_IPC2152_A(ip_t* restrict ip)
+{
+    ip->plane_distance.outval = 0;
+    ip->plane_distance.val = 0;
+    ip->plane_distance.units = "\0";
+
+    ip->pcb_thermal_cond.outval = 0.20;
+    ip->pcb_thermal_cond.val = CONV_WmK_TO_BTUhftF(0.20);
+    ip->pcb_thermal_cond.units = "W/mK";
+
+    ip->pcb_thickness.outval = 1.6;
+    ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
+    ip->pcb_thickness.units = "mm";
+
+    /* Set modifier defaults */
+    ip->cf.copper_weight = 0;
+    ip->cf.pcb_thickness = 1;
+    ip->cf.plane_distance = 1;
+    ip->cf.pcb_thermal_cond = 1;
+}
+
+void set_defv_IPC2152_B(ip_t* restrict ip)
+{
+    ip->plane_area.outval = 0;
+    ip->plane_area.val = 0;
+    ip->plane_area.units = "\0";
+
+    ip->plane_distance.outval = 0;
+    ip->plane_distance.val = 0;
+    ip->plane_distance.units = "\0";
+
+    ip->pcb_thickness.outval = 1.6;
+    ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
+    ip->pcb_thickness.units = "mm";
+
+    /* Set modifier defaults */
+    ip->cf.copper_weight = 1;
+    ip->cf.temp_rise = 1;
+    ip->cf.plane_area = 1;
+    ip->cf.pcb_thickness = 1;
+    ip->cf.plane_distance = 1;
+}
+
+void set_defv_IPC2152_C(ip_t* restrict ip)
+{
+    ip->temp_ambient.outval = 25;
+    ip->temp_ambient.val = 25;
+    ip->temp_ambient.units = "C";
+}
+
 int get_options(int argc, char** restrict argv, ip_t* restrict ip)
 {
     double val = 0.0f; /* Temporary value to store the argument */
@@ -53,6 +152,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
         }
 
         if (!(strcmp("-w", argv[i])) || !(strcmp("--copper-weight", argv[i]))) {
+            //TODO: Add a conversion function as a parameter like CONV_M_MIL(1) and multiply that variable by the value
             CHECK_RET(assign_values_units_metric(&ip->copper_weight, argv[i + 1], 'm'));
             ip->copper_weight.val = CONV_M_TO_OZFT2(ip->copper_weight.val);
             i++;
@@ -503,7 +603,7 @@ int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
 {
     const char* standard_arr[] = { "IPC2221", "IPC2152", "afko" }; /* Standard names array */
     const int standard_const[] = { IPC2221, IPC2152, 666 }; /* Number representation of the standards */
-    const char method_arr[] = { 'A', 'B' }; /* Method array */
+    const char method_arr[] = { 'A', 'B', 'C' }; /* Method array */
     char strval[10] = { "\0" }; /* Temp value for the string argument */
 
     /* Get the sizes of the arrays */
@@ -532,12 +632,12 @@ int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
         }
     }
 
-    /* Sets up the string when not specifying standard */
+    /* Sets up the standard string when not specifying standard */
     if (ip->standard.num == IPC2152 && ip->standard.str[0] == '\0') {
             strcpy(ip->standard.str, "IPC2152"); 
     }
 
-    /* Sets up the string when not specifying method */
+    /* Sets up the method char when not specifying method */
     if (ip->standard.num == IPC2152 && ip->method == '\0') {
             ip->method = 'A'; 
     }
@@ -587,186 +687,6 @@ int check_method(char chrval, const char* restrict method_arr, unsigned int size
     return 0;
 }
 
-int set_outu_IPC2221(ip_t* restrict ip, op_t* restrict op)
-{
-    switch (ip->uflag) {
-        case 'm':
-            op->extl.cs_area.units = "mm^2";
-            op->extl.cs_area.val = CONV_MIL2_TO_MM2(op->extl.cs_area.val);
-            op->extl.trace_width.units = "mm";
-            op->extl.trace_width.val = CONV_MIL_TO_MM(op->extl.trace_width.val);
-
-            op->intl.cs_area.units = "mm^2";
-            op->intl.cs_area.val = CONV_MIL2_TO_MM2(op->intl.cs_area.val);
-            op->intl.trace_width.units = "mm";
-            op->intl.trace_width.val = CONV_MIL_TO_MM(op->intl.trace_width.val);
-            break;
-        case 'i':
-            op->extl.cs_area.units = "mil^2";
-            op->extl.trace_width.units = "mil";
-            op->intl.cs_area.units = "mil^2";
-            op->intl.trace_width.units = "mil";
-            break;
-        default:
-            fprintf(stderr, "\nShould be impossible to reach this condition...\n");
-
-            return 1;
-    }
-
-    return 0;
-}
-
-int set_outu_IPC2152(ip_t* restrict ip, op_t* restrict op)
-{
-    switch (ip->uflag) {
-        case 'm':
-            op->layer.cs_area.units = "mm^2";
-            op->layer.cs_area.val = CONV_MIL2_TO_MM2(op->layer.cs_area.val);
-            op->layer.trace_width.units = "mm";
-            op->layer.trace_width.val = CONV_MIL_TO_MM(op->layer.trace_width.val);
-            op->layer.corr_cs_area.units = "mm^2";
-            op->layer.corr_cs_area.val = CONV_MIL2_TO_MM2(op->layer.corr_cs_area.val);
-            op->layer.corr_trace_width.units = "mm";
-            op->layer.corr_trace_width.val = CONV_MIL_TO_MM(op->layer.corr_trace_width.val);
-            break;
-        case 'i':
-            op->layer.cs_area.units = "mil^2";
-            op->layer.trace_width.units = "mil";
-            op->layer.corr_cs_area.units = "mil^2";
-            op->layer.corr_trace_width.units = "mil";
-            break;
-        default:
-            fprintf(stderr, "\nShould be impossible to reach this condition...\n");
-
-            return 1;
-    }
-
-    return 0;
-}
-
-void set_defv_IPC2221(ip_t* restrict ip)
-{
-    ip->current.outval = 0;
-    ip->current.val = 0;
-    ip->current.units = "\0";
-
-    ip->copper_weight.outval = 0;
-    ip->copper_weight.val = 0;
-    ip->copper_weight.units = "\0";
-
-    ip->temp_rise.outval = 10;
-    ip->temp_rise.val = 10;
-    ip->temp_rise.units = "C";
-
-    ip->temp_ambient.outval = 25;
-    ip->temp_ambient.val = 25;
-    ip->temp_ambient.units = "C";
-
-    ip->trace_length.outval = 0;
-    ip->trace_length.val = 0;
-    ip->trace_length.units = "\0";
-
-    ip->resistivity.outval = 1.72e-8; // Annealed copper
-    ip->resistivity.val = 1.72e-8;
-    ip->resistivity.units = "Ohm m";
-
-    ip->a.outval = 0.00393; // Annealed copper
-    ip->a.val = 0.00393;
-    ip->a.units = "1/C";
-}
-
-void set_defv_IPC2152_A(ip_t* restrict ip)
-{
-    ip->current.outval = 0;
-    ip->current.val = 0;
-    ip->current.units = "\0";
-
-    ip->copper_weight.outval = 0;
-    ip->copper_weight.val = 0;
-    ip->copper_weight.units = "\0";
-
-    ip->temp_rise.outval = 10;
-    ip->temp_rise.val = 10;
-    ip->temp_rise.units = "C";
-
-    ip->trace_length.outval = 0;
-    ip->trace_length.val = 0;
-    ip->trace_length.units = "\0";
-
-    ip->plane_area.outval = 0;
-    ip->plane_area.val = 0;
-    ip->plane_area.units = "\0";
-
-    ip->plane_distance.outval = 0;
-    ip->plane_distance.val = 0;
-    ip->plane_distance.units = "\0";
-
-    ip->pcb_thickness.outval = 1.6;
-    ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
-    ip->pcb_thickness.units = "mm";
-
-    ip->resistivity.outval = 1.72e-8; // Annealed copper
-    ip->resistivity.val = 1.72e-8;
-    ip->resistivity.units = "Ohm m";
-
-    ip->a.outval = 0.00393;
-    ip->a.val = 0.00393;
-    ip->a.units = "1/C";
-
-    /* Set modifier defaults */
-    ip->cf.copper_weight = 1;
-    ip->cf.temp_rise = 1;
-    ip->cf.plane_area = 1;
-    ip->cf.pcb_thickness = 1;
-    ip->cf.plane_distance = 1;
-}
-
-void set_defv_IPC2152_B(ip_t* restrict ip)
-{
-    /* Set input value defaults */
-    ip->current.outval = 0;
-    ip->current.val = 0;
-    ip->current.units = "\0";
-
-    ip->copper_weight.outval = 0;
-    ip->copper_weight.val = 0;
-    ip->copper_weight.units = "\0";
-
-    ip->temp_rise.outval = 10;
-    ip->temp_rise.val = 10;
-    ip->temp_rise.units = "C";
-
-    ip->trace_length.outval = 0;
-    ip->trace_length.val = 0;
-    ip->trace_length.units = "\0";
-
-    ip->plane_distance.outval = 0;
-    ip->plane_distance.val = 0;
-    ip->plane_distance.units = "\0";
-
-    ip->pcb_thermal_cond.outval = 0.20;
-    ip->pcb_thermal_cond.val = CONV_WmK_TO_BTUhftF(0.20);
-    ip->pcb_thermal_cond.units = "W/mK";
-
-    ip->pcb_thickness.outval = 1.6;
-    ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
-    ip->pcb_thickness.units = "mm";
-
-    ip->resistivity.outval = 1.72e-8; // Annealed copper
-    ip->resistivity.val = 1.72e-8;
-    ip->resistivity.units = "Ohm m";
-
-    ip->a.outval = 0.00393;
-    ip->a.val = 0.00393;
-    ip->a.units = "1/C";
-
-    /* Set modifier defaults */
-    ip->cf.copper_weight = 0;
-    ip->cf.pcb_thickness = 1;
-    ip->cf.plane_distance = 1;
-    ip->cf.pcb_thermal_cond = 1;
-}
-
 int sel_functions(ip_t* restrict ip)
 {
     switch (ip->standard.num) {
@@ -786,16 +706,22 @@ int sel_functions(ip_t* restrict ip)
 
             switch (ip->method) {
                 case 'A':
-                    ip->defv = &set_defv_IPC2152_B;
-                    ip->proc = &calcs_IPC2152_B;
-                    ip->outu = &set_outu_IPC2152;
-                    ip->outp = &output_results_IPC2152_B;
-                    break;
-                case 'B':
                     ip->defv = &set_defv_IPC2152_A;
                     ip->proc = &calcs_IPC2152_A;
-                    ip->outu = &set_outu_IPC2152;
+                    ip->outu = &set_outu_IPC2152_A;
                     ip->outp = &output_results_IPC2152_A;
+                    break;
+                case 'B':
+                    ip->defv = &set_defv_IPC2152_B;
+                    ip->proc = &calcs_IPC2152_B;
+                    ip->outu = &set_outu_IPC2152_B;
+                    ip->outp = &output_results_IPC2152_B;
+                    break;
+                case 'C':
+                    ip->defv = &set_defv_IPC2152_C;
+                    ip->proc = &calcs_IPC2152_C;
+                    ip->outu = &set_outu_IPC2152_C;
+                    ip->outp = &output_results_IPC2152_C;
                     break;
                 default:
                     fprintf(stderr, "\nMethod %c for the IPC-%d doesn't exist.\n", ip->method, ip->standard.num);
@@ -863,6 +789,47 @@ void calcs_IPC2221(ip_t* restrict ip, op_t* restrict op)
 
 void calcs_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
 {
+    op->layer.cs_area.val = pow(ip->current.val / (0.089710902134 * pow(ip->temp_rise.val, 0.39379253898)), 1 / (0.50382053698 * pow(ip->temp_rise.val, 0.038495772461)));
+
+    /* Coefficients array */
+    double coeff_arr[6][4] = {
+        { 0.98453567795,     -0.22281787548,     0.20061423196,      -0.041541116264 },
+        { -0.01657194921,     0.00017520059279, -0.0050615234096,     0.002281483634 },
+        { 0.00088711317661,   0.0013631745743,  -0.0002237330971,    -0.00010974218613 },
+        { -66729255031e-16,  -0.00014976736827,  58082340133e-15,    -24728159584e-16 },
+        { -7.9576264561e-7,   55788354958e-16,  -24912026388e-16,     2.4000295954e-7 },
+        { 1.6619678738e-8,   -7.1122635445e-8,   3.3800191741e-8,    -3.9797591878e-9 }
+    };
+
+    for (int i = 0; i < 6; i++) {
+        for (int c = 0; c < 4; c++) {
+            /* Copper weight here must be in oz/ft2 */
+            ip->cf.copper_weight += coeff_arr[i][c] * pow(ip->copper_weight.val, c) * pow(ip->current.val, i);
+        }
+    }
+
+    /* PCB Thickness must be in mil */
+    ip->cf.pcb_thickness = 24.929779905 * pow(ip->pcb_thickness.val, -0.75501997929);
+
+    /* Plane Distance must be in mil */
+    if (ip->plane_distance.val != 0) {
+        ip->cf.plane_distance = 0.0031298662911 * ip->plane_distance.val + 0.40450883823;
+    }
+
+    /* PCB Thermal Conductivity must be in BTU/h*ft*F */
+    ip->cf.pcb_thermal_cond = -1.4210148167 * ip->pcb_thermal_cond.val + 1.1958174134;
+
+    /* Corrected CS area */
+    op->layer.corr_cs_area.val = op->layer.cs_area.val * ip->cf.copper_weight * ip->cf.pcb_thickness * ip->cf.plane_distance * ip->cf.pcb_thermal_cond;
+
+    /* Corrected Trace Width */
+    op->layer.corr_trace_width.val = calc_trace_width_mils(ip, op->layer.corr_cs_area.val);
+
+    calc_width_res_vdrop_ploss(ip, &op->layer);
+}
+
+void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
+{
     /* Different one on the website, and different one in the website code */
     op->layer.cs_area.val = (110.515 * pow(ip->temp_rise.val, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->temp_rise.val, -0.102) + 1.129);
     // op->layer.cs_area.val = (117.555 * pow(ip->temp_rise.val, -0.913) + 1.15) * pow(ip->current.val, 0.84 * pow(ip->temp_rise.val, -0.018) + 1.159); 
@@ -911,55 +878,37 @@ void calcs_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
     op->layer.trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.cs_area.val) * 1.378; // overwrites the result from calc_width_res_vdrop_ploss()
 }
 
-void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
+void calcs_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
 {
-    op->layer.cs_area.val = pow(ip->current.val / (0.089710902134 * pow(ip->temp_rise.val, 0.39379253898)), 1 / (0.50382053698 * pow(ip->temp_rise.val, 0.038495772461)));
+    double copper_weight_mil = CONV_OZFT2_TO_MIL(ip->copper_weight.val);
+    double num1 = 0.09;
+    double num2 = 0.0458 * exp(0.36235/copper_weight_mil);
+    double K1 = num1 < num2 ? num1 : num2;
+    double K2 = 0.068152;
+    // double K3 = 0.00000067; // resistivity used on website was 6.7 * 10^-8? Called K3 in the source code.
+    
+    /* Internal layers */
+    op->intl.trace_width.val = pow(ip->current.val/(K1 * pow(ip->temp_rise.val, 0.5f) * pow(copper_weight_mil, 0.76)), 1/0.575);
+    op->intl.cs_area.val = op->intl.trace_width.val * copper_weight_mil;
 
-    /* Coefficients array */
-    double coeff_arr[6][4] = {
-        { 0.98453567795,     -0.22281787548,     0.20061423196,      -0.041541116264 },
-        { -0.01657194921,     0.00017520059279, -0.0050615234096,     0.002281483634 },
-        { 0.00088711317661,   0.0013631745743,  -0.0002237330971,    -0.00010974218613 },
-        { -66729255031e-16,  -0.00014976736827,  58082340133e-15,    -24728159584e-16 },
-        { -7.9576264561e-7,   55788354958e-16,  -24912026388e-16,     2.4000295954e-7 },
-        { 1.6619678738e-8,   -7.1122635445e-8,   3.3800191741e-8,    -3.9797591878e-9 }
-    };
+    /* Since in this method trace width is calculated before area, just call the Resistance, Vdrop, and Ploss functions separately */
+    op->intl.resistance.val = ip->trace_length.val > 0 ? calc_resistance(ip, op->intl.cs_area.val) : 0.0f;
+    op->intl.voltage_drop.val = calc_vdrop(ip, op->intl.resistance.val);
+    op->intl.power_loss.val = calc_power_loss(ip, op->intl.voltage_drop.val);
 
-    for (int i = 0; i < 6; i++) {
-        for (int c = 0; c < 4; c++) {
-            /* Copper weight here must be in oz/ft2 */
-            ip->cf.copper_weight += coeff_arr[i][c] * pow(ip->copper_weight.val, c) * pow(ip->current.val, i);
-        }
-    }
+    /* External layers */
+    op->extl.trace_width.val = pow(ip->current.val/(K2 * pow(ip->temp_rise.val, 0.5f) * pow(copper_weight_mil, 0.5)), 1/0.575);
+    op->extl.cs_area.val = op->extl.trace_width.val * copper_weight_mil;
 
-    /* PCB Thickness must be in mil */
-    ip->cf.pcb_thickness = 24.929779905 * pow(ip->pcb_thickness.val, -0.75501997929);
-
-    /* Plane Distance must be in mil */
-    if (ip->plane_distance.val != 0) {
-        ip->cf.plane_distance = 0.0031298662911 * ip->plane_distance.val + 0.40450883823;
-    }
-
-    /* PCB Thermal Conductivity must be in BTU/h*ft*F */
-    ip->cf.pcb_thermal_cond = -1.4210148167 * ip->pcb_thermal_cond.val + 1.1958174134;
-
-    /* Corrected CS area */
-    op->layer.corr_cs_area.val = op->layer.cs_area.val * ip->cf.copper_weight * ip->cf.pcb_thickness * ip->cf.plane_distance * ip->cf.pcb_thermal_cond;
-
-    /* Corrected Trace Width */
-    op->layer.corr_trace_width.val = calc_trace_width_mils(ip, op->layer.corr_cs_area.val);
-
-    calc_width_res_vdrop_ploss(ip, &op->layer);
+    op->extl.resistance.val = ip->trace_length.val > 0 ? calc_resistance(ip, op->extl.cs_area.val) : 0.0f;
+    op->extl.voltage_drop.val = calc_vdrop(ip, op->extl.resistance.val);
+    op->extl.power_loss.val = calc_power_loss(ip, op->extl.voltage_drop.val);
 }
 
 void calc_width_res_vdrop_ploss(ip_t* restrict ip, layer_t* restrict layer)
 {
     layer->trace_width.val = calc_trace_width_mils(ip, layer->cs_area.val);
-
-    if (ip->trace_length.val > 0) {
-        layer->resistance.val = calc_resistance(ip, layer->cs_area.val);
-    }
-
+    layer->resistance.val = ip->trace_length.val > 0 ? calc_resistance(ip, layer->cs_area.val) : 0.0f;
     layer->voltage_drop.val = calc_vdrop(ip, layer->resistance.val);
     layer->power_loss.val = calc_power_loss(ip, layer->voltage_drop.val);
 }
@@ -971,7 +920,7 @@ double calc_trace_width_mils(ip_t* restrict ip, double cs_area)
 
 double calc_resistance(ip_t* restrict ip, double cs_area)
 {
-    return ((ip->trace_length.val * ip->resistivity.val) / (CONV_MIL2_TO_CM2(cs_area))) * (1 + (ip->a.val * ((ip->temp_rise.val + ip->temp_ambient.val) - ip->temp_ambient.val)));
+    return (ip->resistivity.val * ip->trace_length.val / CONV_MIL2_TO_M2(cs_area)) * (1 + (ip->a.val * ((ip->temp_rise.val + ip->temp_ambient.val) - 20)));
 }
 
 double calc_vdrop(ip_t* restrict ip, double resistance)
@@ -982,6 +931,120 @@ double calc_vdrop(ip_t* restrict ip, double resistance)
 double calc_power_loss(ip_t* ip, double vdrop)
 {
     return ip->current.val * vdrop;
+}
+
+int set_outu_IPC2221(ip_t* restrict ip, op_t* restrict op)
+{
+    switch (ip->uflag) {
+        case 'm':
+            op->extl.cs_area.units = "mm^2";
+            op->extl.cs_area.val = CONV_MIL2_TO_MM2(op->extl.cs_area.val);
+            op->extl.trace_width.units = "mm";
+            op->extl.trace_width.val = CONV_MIL_TO_MM(op->extl.trace_width.val);
+
+            op->intl.cs_area.units = "mm^2";
+            op->intl.cs_area.val = CONV_MIL2_TO_MM2(op->intl.cs_area.val);
+            op->intl.trace_width.units = "mm";
+            op->intl.trace_width.val = CONV_MIL_TO_MM(op->intl.trace_width.val);
+            break;
+        case 'i':
+            op->extl.cs_area.units = "mil^2";
+            op->extl.trace_width.units = "mil";
+            op->intl.cs_area.units = "mil^2";
+            op->intl.trace_width.units = "mil";
+            break;
+        default:
+            fprintf(stderr, "\nShould be impossible to reach this condition...\n");
+
+            return 1;
+    }
+
+    return 0;
+}
+
+int set_outu_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
+{
+    switch (ip->uflag) {
+        case 'm':
+            op->layer.cs_area.units = "mm^2";
+            op->layer.cs_area.val = CONV_MIL2_TO_MM2(op->layer.cs_area.val);
+            op->layer.trace_width.units = "mm";
+            op->layer.trace_width.val = CONV_MIL_TO_MM(op->layer.trace_width.val);
+            op->layer.corr_cs_area.units = "mm^2";
+            op->layer.corr_cs_area.val = CONV_MIL2_TO_MM2(op->layer.corr_cs_area.val);
+            op->layer.corr_trace_width.units = "mm";
+            op->layer.corr_trace_width.val = CONV_MIL_TO_MM(op->layer.corr_trace_width.val);
+            break;
+        case 'i':
+            op->layer.cs_area.units = "mil^2";
+            op->layer.trace_width.units = "mil";
+            op->layer.corr_cs_area.units = "mil^2";
+            op->layer.corr_trace_width.units = "mil";
+            break;
+        default:
+            fprintf(stderr, "\nShould be impossible to reach this condition...\n");
+
+            return 1;
+    }
+
+    return 0;
+}
+
+int set_outu_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
+{
+    switch (ip->uflag) {
+        case 'm':
+            op->layer.cs_area.units = "mm^2";
+            op->layer.cs_area.val = CONV_MIL2_TO_MM2(op->layer.cs_area.val);
+            op->layer.trace_width.units = "mm";
+            op->layer.trace_width.val = CONV_MIL_TO_MM(op->layer.trace_width.val);
+            op->layer.corr_cs_area.units = "mm^2";
+            op->layer.corr_cs_area.val = CONV_MIL2_TO_MM2(op->layer.corr_cs_area.val);
+            op->layer.corr_trace_width.units = "mm";
+            op->layer.corr_trace_width.val = CONV_MIL_TO_MM(op->layer.corr_trace_width.val);
+            break;
+        case 'i':
+            op->layer.cs_area.units = "mil^2";
+            op->layer.trace_width.units = "mil";
+            op->layer.corr_cs_area.units = "mil^2";
+            op->layer.corr_trace_width.units = "mil";
+            break;
+        default:
+            fprintf(stderr, "\nShould be impossible to reach this condition...\n");
+
+            return 1;
+    }
+
+    return 0;
+}
+
+int set_outu_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
+{
+    switch (ip->uflag) {
+        case 'm':
+            op->extl.cs_area.units = "mm^2";
+            op->extl.cs_area.val = CONV_MIL2_TO_MM2(op->extl.cs_area.val);
+            op->extl.trace_width.units = "mm";
+            op->extl.trace_width.val = CONV_MIL_TO_MM(op->extl.trace_width.val);
+
+            op->intl.cs_area.units = "mm^2";
+            op->intl.cs_area.val = CONV_MIL2_TO_MM2(op->intl.cs_area.val);
+            op->intl.trace_width.units = "mm";
+            op->intl.trace_width.val = CONV_MIL_TO_MM(op->intl.trace_width.val);
+            break;
+        case 'i':
+            op->extl.cs_area.units = "mil^2";
+            op->extl.trace_width.units = "mil";
+            op->intl.cs_area.units = "mil^2";
+            op->intl.trace_width.units = "mil";
+            break;
+        default:
+            fprintf(stderr, "\nShould be impossible to reach this condition...\n");
+
+            return 1;
+    }
+
+    return 0;
 }
 
 int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
@@ -1001,8 +1064,8 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
             "\n\n"
             "        External Layers\n"
             "Area: \t\t\t%lf\t[%s]\n"
-            "Width:\t\t\t%lf\t[%s]\n"
-            , op->extl.cs_area.val, op->extl.cs_area.units, op->extl.trace_width.val, op->extl.trace_width.units);
+            "Width:\t\t\t%lf\t[%s]\n",
+            op->extl.cs_area.val, op->extl.cs_area.units, op->extl.trace_width.val, op->extl.trace_width.units);
 
     fprintf(file,
             ip->trace_length.val > 0 ?
@@ -1016,8 +1079,8 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
     fprintf(file,
             "        Internal Layers\n"
             "Area: \t\t\t%lf\t[%s]\n"
-            "Width:\t\t\t%lf\t[%s]\n"
-            , op->intl.cs_area.val, op->intl.cs_area.units, op->intl.trace_width.val, op->intl.trace_width.units);
+            "Width:\t\t\t%lf\t[%s]\n",
+            op->intl.cs_area.val, op->intl.cs_area.units, op->intl.trace_width.val, op->intl.trace_width.units);
 
     fprintf(file,
             ip->trace_length.val > 0 ?
@@ -1042,7 +1105,7 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
             ip->a.outval, ip->a.units, " ", ip->resistivity.outval, ip->resistivity.units);
 
     fprintf(file,
-            "\n- Calculations limitations are listed below, with inputs outside these limitations being more error prone,\n"
+            "\n- Calculations limitations are listed below, with inputs outside these limitations being more error prone due to extrapolation,\n"
             "\t+ Currents up to 35 A external and 17.5 A internal. \n"
             "\t+ Temperature rises from 10 C to 100 C.\n"
             "\t+ Trace widths between 0 and 10.16mm.\n"
@@ -1072,15 +1135,71 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
             "Trace Length:\t\t%lf\t[%s]\n"
             "PCB Thickness:\t\t%lf\t[%s]\n"
             "Plane Distance:\t\t%lf\t[%s]\n"
+            "PCB Thermal Cond.:\t%lf\t[%s]\n",
+            ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temp_rise.outval, ip->temp_rise.units, ip->trace_length.outval, ip->trace_length.units, ip->pcb_thickness.outval, ip->pcb_thickness.units, ip->plane_distance.outval, ip->plane_distance.units, ip->pcb_thermal_cond.outval, ip->pcb_thermal_cond.units);
+
+    fprintf(file,
+            "\n"
+            "Area: \t\t\t%lf\t[%s]\n"
+            "Corrected Area: \t%lf\t[%s]\n\n"
+            "Width:\t\t\t%lf\t[%s]\n"
+            "Corrected Width: \t%lf\t[%s]\n\n",
+            op->layer.cs_area.val, op->layer.cs_area.units, op->layer.corr_cs_area.val, op->layer.corr_cs_area.units, op->layer.trace_width.val, op->layer.trace_width.units, op->layer.corr_trace_width.val, op->layer.corr_trace_width.units);
+
+    fprintf(file,
+            ip->trace_length.val > 0 ?
+            "Resistance:\t\t%lf\t[Ohm]\n"
+            "Voltage Drop:\t\t%lf\t[V]\n"
+            "Power Loss:\t\t%lf\t[W]\n" : "\r",
+            op->layer.resistance.val, op->layer.voltage_drop.val, op->layer.power_loss.val);
+
+    fprintf(file,
+            "\n"
+            "Copper Weight CF:\t%lf\t[units]\n"
+            "PCB Thickness CF:\t%lf\t[units]\n"
+            "PCB Thermal Cond. CF:\t%lf\t[units]\n"
+            "Plane Distance CF:\t%lf\t[units]\n",
+            ip->cf.copper_weight, ip->cf.pcb_thickness, ip->cf.pcb_thermal_cond, ip->cf.plane_distance);
+
+    fprintf(file, ip->trace_length.val == 0 ?
+            "\n- Use trace length with '-l' to get voltage, resistance and power calculations.\n" :
+            "\n- Constants used for the P/I/V calculations were,\n\n"
+            "\ta = %.7lf\t[%s] (Temperature Coefficient)\n"
+            "%srho = %.12lf\t[%s] (Resistivity)\n",
+            ip->a.outval, ip->a.units, " ", ip->resistivity.outval, ip->resistivity.units);
+
+    fprintf(file,
+            "\n- Constants and method used were derived from https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152.\n");
+
+    fprintf(file,
+            "\n- TWC used the %s standard, Method %c.\n", ip->standard.str, ip->method);
+
+    fprintf(file, DISCLAIMER_STR);
+
+    return EXIT_SUCCESS;
+}
+
+int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
+{
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+
+    fprintf(file,
+            "\n"
+            "Current:\t\t%lf\t[%s]\n"
+            "Copper Weight:\t\t%lf\t[%s]\n"
+            "Temperature, Rise:\t%lf\t[%s]\n"
+            "Trace Length:\t\t%lf\t[%s]\n"
+            "PCB Thickness:\t\t%lf\t[%s]\n"
+            "Plane Distance:\t\t%lf\t[%s]\n"
             "Plane Area:\t\t%lf\t[%s]\n",
             ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temp_rise.outval, ip->temp_rise.units, ip->trace_length.outval, ip->trace_length.units, ip->pcb_thickness.outval, ip->pcb_thickness.units, ip->plane_distance.outval, ip->plane_distance.units, ip->plane_area.outval, ip->plane_area.units);
 
     fprintf(file,
             "\n"
             "Area: \t\t\t%lf\t[%s]\n"
-            "Corrected Area: \t%lf\t[%s]\n"
+            "Corrected Area: \t%lf\t[%s]\n\n"
             "Width:\t\t\t%lf\t[%s]\n"
-            "Corrected Width: \t%lf\t[%s]\n",
+            "Corrected Width: \t%lf\t[%s]\n\n",
             op->layer.cs_area.val, op->layer.cs_area.units, op->layer.corr_cs_area.val, op->layer.corr_cs_area.units, op->layer.trace_width.val, op->layer.trace_width.units, op->layer.corr_trace_width.val, op->layer.corr_trace_width.units);
 
     fprintf(file,
@@ -1117,7 +1236,7 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
     return EXIT_SUCCESS;
 }
 
-int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
+int output_results_IPC2152_C(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
     fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
 
@@ -1126,34 +1245,40 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
             "Current:\t\t%lf\t[%s]\n"
             "Copper Weight:\t\t%lf\t[%s]\n"
             "Temperature, Rise:\t%lf\t[%s]\n"
-            "Trace Length:\t\t%lf\t[%s]\n"
-            "PCB Thickness:\t\t%lf\t[%s]\n"
-            "Plane Distance:\t\t%lf\t[%s]\n"
-            "PCB Thermal Cond.:\t%lf\t[%s]\n",
-            ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temp_rise.outval, ip->temp_rise.units, ip->trace_length.outval, ip->trace_length.units, ip->pcb_thickness.outval, ip->pcb_thickness.units, ip->plane_distance.outval, ip->plane_distance.units, ip->pcb_thermal_cond.outval, ip->pcb_thermal_cond.units);
+            "Temperature, Ambient:\t%lf\t[%s]\n"
+            "Trace Length:\t\t%lf\t[%s]\n",
+            ip->current.outval, ip->current.units, ip->copper_weight.outval, ip->copper_weight.units, ip->temp_rise.outval, ip->temp_rise.units, ip->temp_ambient.val, ip->temp_ambient.units, ip->trace_length.outval, ip->trace_length.units);
 
     fprintf(file,
-            "\n"
+            "\n\n"
+            "        External Layers\n"
             "Area: \t\t\t%lf\t[%s]\n"
-            "Corrected Area: \t%lf\t[%s]\n"
-            "Width:\t\t\t%lf\t[%s]\n"
-            "Corrected Width: \t%lf\t[%s]\n",
-            op->layer.cs_area.val, op->layer.cs_area.units, op->layer.corr_cs_area.val, op->layer.corr_cs_area.units, op->layer.trace_width.val, op->layer.trace_width.units, op->layer.corr_trace_width.val, op->layer.corr_trace_width.units);
+            "Width:\t\t\t%lf\t[%s]\n",
+            op->extl.cs_area.val, op->extl.cs_area.units, op->extl.trace_width.val, op->extl.trace_width.units);
 
     fprintf(file,
             ip->trace_length.val > 0 ?
             "Resistance:\t\t%lf\t[Ohm]\n"
             "Voltage Drop:\t\t%lf\t[V]\n"
             "Power Loss:\t\t%lf\t[W]\n" : "\r",
-            op->layer.resistance.val, op->layer.voltage_drop.val, op->layer.power_loss.val);
+            op->extl.resistance.val, op->extl.voltage_drop.val, op->extl.power_loss.val);
+
+    fprintf(file, "\n\n");
 
     fprintf(file,
-            "\n"
-            "Copper Weight CF:\t%lf\t[units]\n"
-            "PCB Thickness CF:\t%lf\t[units]\n"
-            "PCB Thermal Cond. CF:\t%lf\t[units]\n"
-            "Plane Distance CF:\t%lf\t[units]\n",
-            ip->cf.copper_weight, ip->cf.pcb_thickness, ip->cf.pcb_thermal_cond, ip->cf.plane_distance);
+            "        Internal Layers\n"
+            "Area: \t\t\t%lf\t[%s]\n"
+            "Width:\t\t\t%lf\t[%s]\n",
+            op->intl.cs_area.val, op->intl.cs_area.units, op->intl.trace_width.val, op->intl.trace_width.units);
+
+    fprintf(file,
+            ip->trace_length.val > 0 ?
+            "Resistance:\t\t%lf\t[Ohm]\n"
+            "Voltage Drop:\t\t%lf\t[V]\n"
+            "Power Loss:\t\t%lf\t[W]\n" : "\r",
+            op->intl.resistance.val, op->intl.voltage_drop.val, op->intl.power_loss.val);
+
+    fprintf(file, "\n");
 
     fprintf(file, ip->trace_length.val == 0 ?
             "\n- Use trace length with '-l' to get voltage, resistance and power calculations.\n" :
@@ -1163,7 +1288,7 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
             ip->a.outval, ip->a.units, " ", ip->resistivity.outval, ip->resistivity.units);
 
     fprintf(file,
-            "\n- Constants and method used were derived from https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152.\n");
+            "\n- Constants and method used were derived from https://twcalculator.app.protoexpress.com/.\n");
 
     fprintf(file,
             "\n- TWC used the %s standard, Method %c.\n", ip->standard.str, ip->method);
@@ -1172,7 +1297,6 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
     return EXIT_SUCCESS;
 }
-
 // TODO: Create help for each option?
 int output_help()
 {
