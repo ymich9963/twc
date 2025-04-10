@@ -26,7 +26,7 @@
 #define	PATH_LEN 255
 #define	WELCOME_STR "\nTrace Width Calculator, Made by Yiannis Michael (2024). \n\nPlease 'type twc.exe <Current [A]> <Copper Weight [oz/ft^2]>' to get output results. Use '--help' for explanation of the flags and more advanced usage, for different units, optional inputs, etc.\n\nThis tool should only be used to assist design decisions and not be used to replace professional advice. Developer(s) have no liability whatsoever.\n\n" "This program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n"
 #define	FEW_ARGS_STR "\nAn input of at least Current [A] and Copper Weight [oz/ft^2] is required. Use no arguments to get the welcome message and either '-h' or '--help' to get the list of commands.\n"
-#define	VERSION_STR "\nTrace Width Calculator (TWC)\nVersion 1.0.7\n"
+#define	VERSION_STR "\nTrace Width Calculator (TWC)\nVersion 1.1.0\n"
 #define	DISCLAIMER_STR "\nDesign assistance by the TWC tool is provided with no liability whatsover. For final decisions on electronics designs, please consult an actual qualified person.\n"
 
 /* Conversion macros */
