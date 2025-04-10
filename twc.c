@@ -1,9 +1,9 @@
 /*
-twc : Trace Width Calculator.
-Copyright (C) 2024 Yiannis Michael (ymich9963)
+    twc : Trace Width Calculator.
+    Copyright (C) 2024 Yiannis Michael (ymich9963)
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "twc.h"
@@ -1044,7 +1044,7 @@ int set_outu_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
 
 int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n\n", ip->note);
 
     fprintf(file,
             "Current:\t\t%lf\t[%s]\n"
@@ -1119,7 +1119,7 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n\n", ip->note);
 
     fprintf(file,
             "Current:\t\t%lf\t[%s]\n"
@@ -1174,7 +1174,7 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n\n", ip->note);
 
     fprintf(file,
             "Current:\t\t%lf\t[%s]\n"
@@ -1230,7 +1230,7 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_C(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n\n", ip->note);
 
     fprintf(file,
             "Current:\t\t%lf\t[%s]\n"

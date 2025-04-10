@@ -8,19 +8,19 @@
 A calculator tool used to assist designing rigid PCB traces. Implements both the IPC2221 and IPC2152 standards and has the ability to choose between the two, with the latter having three methods available. Each method used for the standards was derived from one of the various websites that claim to implement an trace width calculator. More information regarding certain formulas used are under `docs/`.
 
 ## Features
-- Three methods for calculating trace widths in rigid PCBs, listed in the next section.
+- Four total methods for calculating trace widths in rigid PCBs, listed in the next section.
 - Default units are metric. Choose to change units for any input and change the output units from imperial to metric.
 - Convert any value used in the tool with the conversion functions (use `--help` to list them or see below).
 - Optionally output the results to a file for saving.
 
 ## Methods
-One method is implemented for IPC2221 and two methods for IPC2152. The tool defaults to the IPC2152 standard, Method A.
+One method is implemented for IPC2221 and three methods for IPC2152. The tool defaults to the IPC2152 standard, Method A.
 
 ### IPC2221
-- Method A: Derived from [The CircuitCalculator.com Blog](https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/) and [Omni Calculator](https://www.omnicalculator.com/other/pcb-trace-width#how-to-calculate-the-width-of-a-pcb-trace). 
+- Method: Derived from [The CircuitCalculator.com Blog](https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/) and [Omni Calculator](https://www.omnicalculator.com/other/pcb-trace-width#how-to-calculate-the-width-of-a-pcb-trace). This is the only available method with this standard
 
 ### IPC2152
-- Method A: Derived from [NinjaCalc](https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152).
+- Method A: Derived from [NinjaCalc](https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152). Default method for the TWC.
 - Method B: Derived from [SMPS.us](https://www.smps.us/pcb-calculator.html) which was also posted on the [Altium Resources](https://resources.altium.com/p/using-ipc-2152-calculator-designing-standards).
 - Method C: Derived from [Sierra Circuits](https://twcalculator.app.protoexpress.com/).
 
