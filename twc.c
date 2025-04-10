@@ -1,9 +1,9 @@
 /*
-    twc : Trace Width Calculator.
-    Copyright (C) 2024 Yiannis Michael (ymich9963)
+twc : Trace Width Calculator.
+Copyright (C) 2024 Yiannis Michael (ymich9963)
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "twc.h"
@@ -11,11 +11,11 @@
 void set_universal_defaults(ip_t* restrict ip)
 {
     ip->note[0] = '\0';
-	ip->standard.num = IPC2152;
-	ip->standard.str[0] = '\0';
-	ip->method = '\0';
-	ip->uflag = 'm';
-	ip->ofile.oflag = 0;
+    ip->standard.num = IPC2152;
+    ip->standard.str[0] = '\0';
+    ip->method = '\0';
+    ip->uflag = 'm';
+    ip->ofile.oflag = 0;
 
     ip->current.outval = 0;
     ip->current.val = 0;
@@ -266,7 +266,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
         }
 
         if (!(strcmp("-d", argv[i])) || !(strcmp("--plane-distance", argv[i]))) {
-            CHECK_RET(assign_values_units_metric_area(&ip->plane_distance, argv[i + 1], 'm'));
+            CHECK_RET(assign_values_units_metric(&ip->plane_distance, argv[i + 1], 'm'));
             ip->plane_distance.val = CONV_M_TO_MIL(ip->plane_distance.val);
             i++;
             continue;
@@ -512,7 +512,7 @@ int assign_values_units_metric(dbl_t* ip_dbl, char* optstring, char SI_derived_u
     }
 
     CHECK_LIMITS(val);
-    
+
     ip_dbl->units = malloc(3 * sizeof(char));
     switch(ret) {
         case 0:
@@ -634,12 +634,12 @@ int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
 
     /* Sets up the standard string when not specifying standard */
     if (ip->standard.num == IPC2152 && ip->standard.str[0] == '\0') {
-            strcpy(ip->standard.str, "IPC2152"); 
+        strcpy(ip->standard.str, "IPC2152"); 
     }
 
     /* Sets up the method char when not specifying method */
     if (ip->standard.num == IPC2152 && ip->method == '\0') {
-            ip->method = 'A'; 
+        ip->method = 'A'; 
     }
 
     return 0;
@@ -889,7 +889,7 @@ void calcs_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
     double K1 = num1 < num2 ? num1 : num2;
     double K2 = 0.068152;
     // double K3 = 0.00000067; // resistivity used on website was 6.7 * 10^-8? Called K3 in the source code.
-    
+
     /* Internal layers */
     op->intl.trace_width.val = pow(ip->current.val/(K1 * pow(ip->temp_rise.val, 0.5f) * pow(copper_weight_mil, 0.76)), 1/0.575);
     op->intl.cs_area.val = op->intl.trace_width.val * copper_weight_mil;
@@ -1044,10 +1044,9 @@ int set_outu_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
 
 int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
 
     fprintf(file,
-            "\n"
             "Current:\t\t%lf\t[%s]\n"
             "Copper Weight:\t\t%lf\t[%s]\n"
             "Temperature, Rise:\t%lf\t[%s]\n"
@@ -1120,10 +1119,9 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
 
     fprintf(file,
-            "\n"
             "Current:\t\t%lf\t[%s]\n"
             "Copper Weight:\t\t%lf\t[%s]\n"
             "Temperature, Rise:\t%lf\t[%s]\n"
@@ -1176,10 +1174,9 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
 
     fprintf(file,
-            "\n"
             "Current:\t\t%lf\t[%s]\n"
             "Copper Weight:\t\t%lf\t[%s]\n"
             "Temperature, Rise:\t%lf\t[%s]\n"
@@ -1233,10 +1230,9 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
 int output_results_IPC2152_C(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
-    fprintf(file, ip->note[0] == '\0' ? "\r" : "\nNote:\n%s\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? "\r" : "Note:\n%s\n", ip->note);
 
     fprintf(file,
-            "\n"
             "Current:\t\t%lf\t[%s]\n"
             "Copper Weight:\t\t%lf\t[%s]\n"
             "Temperature, Rise:\t%lf\t[%s]\n"
@@ -1296,34 +1292,36 @@ int output_results_IPC2152_C(ip_t* restrict ip, op_t* restrict op, FILE* file)
 int output_help()
 {
     printf("\nHelp for the Trace Width Calculator (TWC). Specify units with the long options, listed below the short options."
-            "\n\t-n,\t\t--note \"<Text>\"\t\t\t\t= Add a note to the start of the output. Make sure to put the note between quotes.\n"
-            "\n\t-c,\t\t--current <Current [A]>\t\t\t\t= Input the trace current in Amps.\n"
-            "\n\t-w,\t--copper-weight <Copper Weight [m]>\t= Input the copper weight in meters. Use the other options below for imperial units.\n"
-            "\t-w-mil,\t\t--copper-weight-mil\n"
-            "\t-w-oz,\t\t--copper-weight-oz\n"
-            "\n\t-r[-C],\t\t--temperature-rise <Temperature Rise [C]>\t= Input the maximum allowed temperature rise in C.\n"
-            "\t-r-F,\t\t--temperature-rise-F\n"
-            "\n\t-a[-C],\t\t--temperature-ambient <Ambient Temperature [C]>\t= Input the ambient temperature of the trace in C.\n"
-            "\t-r-F,\t\t--temperature-ambient-F\n"
+            "\n\t\t--standard <Standard>\t\t\t\t= Choose the standard to use to calculate trace widths. Options are 'IPC2221' and `IPC2152`.\n"
+            "\n\t\t--method <Method>\t\t\t\t= Choose the method for the desired standard. Currently only used by the IPC2152 procedure with method options 'A', 'B', and 'C'.\n"
+            "\n\t-n,\t--note \"<Text>\"\t\t\t\t\t= Add a note to the start of the output. Make sure to put the note between quotes.\n"
+            "\n\t-c,\t--current <Current [A]>\t\t\t\t= Input the trace current in Amps.\n"
+            "\n\t-w,\t--copper-weight <Copper Weight [m]>\t\t= Input the copper weight in meters. Use the other options below for imperial units.\n"
+            "\t-w-mil,\t--copper-weight-mil\n"
+            "\t-w-oz,\t--copper-weight-oz\n"
+            "\n\t-r[-C],\t--temperature-rise <Temp. Rise [C]>\t\t= Input the maximum allowed temperature rise in C.\n"
+            "\t-r-F,\t--temperature-rise-F\n"
+            "\n\t-a[-C],\t--temperature-ambient <Temp. Ambient  [C]>\t= Input the ambient temperature of the trace in C.\n"
+            "\t-r-F,\t--temperature-ambient-F\n"
             "\n\t-l,\t--trace--length <Trace Length [m]>\t\t= Input the trace length in centimeters. Use the other options below for imperial units.\n"
-            "\t-l,\t\t--trace--length-mm\n"
-            "\t-l-mil,\t\t--trace--length-mil\n"
-            "\t-l-in,\t\t--trace--length-inches\n"
-            "\n\t-t,\t--pcb-thickness <Thickness [m]>\t\t= Input the PCB thickness in meters. Use the other options below for imperial units.\n"
-            "\t-t-mil,\t\t--pcb-thickness-mil\n"
-            "\t-t-in,\t\t--pcb-thickness-in\n"
-            "\n\t-e,\t\t--pcb-thermal-conductivity <Therm. Con. [W/mK]>\t= Input the PCB thermal conductivity in Watts per meter Kelvin.\n"
+            "\t-l,\t--trace--length-mm\n"
+            "\t-l-mil,\t--trace--length-mil\n"
+            "\t-l-in,\t--trace--length-inches\n"
+            "\n\t-t,\t--pcb-thickness <Thickness [m]>\t\t\t= Input the PCB thickness in meters. Use the other options below for imperial units.\n"
+            "\t-t-mil,\t--pcb-thickness-mil\n"
+            "\t-t-in,\t--pcb-thickness-in\n"
+            "\n\t-e,\t--pcb-thermal-conductivity <Therm. Con. [W/mK]>\t= Input the PCB thermal conductivity in Watts per meter Kelvin.\n"
             "\n\t-p,\t--plane-cs-area <Plane Area [m^2]>\t\t= Input the plane cross sectional area in meters squared. Use the other options below for imperial units.\n"
-            "\t-p-in2,\t\t--plane-cs-area-in2\n"
-            "\t-p-mil2,\t\t--plane-cs-area-mil2\n"
+            "\t-p-in2,\t--plane-cs-area-in2\n"
+            "\t-p-mil2,--plane-cs-area-mil2\n"
             "\n\t-d,\t--plane-distance <Plane Distance [m]>\t\t= Input the plane distance in meters. Use the other options below for imperial units.\n"
-            "\t-d-mil,\t\t--plane-distance-mil\n"
-            "\t-d-in,\t\t--plane-distance-inches\n"
-            "\n\t\t--resistivity <Resistivity [Ohm m]>\t\t\t= Input the resistivity in Ohm meters.\n"
-            "\n\t\t--temperature-coefficient <Temp. Coefficient [1/C]>\t= Input the temperature coefficient.\n"
-            "\n\t-o,\t\t--output <File Name>\t\t\t\t= Write the name of the outputted file. Use '.txt' to create a text file. Use a single '.' to auto-generate\n\t\t\t\t\t\t\t\t\t  the name based on date/time. Can also write the full path to the file, e.g. 'C:/Users/user/output.txt'\n\t\t\t\t\t\t\t\t\t  or stop at 'C:/Users/user/' to use the auto-generated file name.\n"
-            "\n\t-m, \t\t--metric\t\t\t\t\t= Make the output units be metric.\n"
-            "\n\t-i, \t\t--imperial\t\t\t\t\t= Make the output units be imperial. Default behaviour, therefore just implemented for completion.\n"
+            "\t-d-mil,\t--plane-distance-mil\n"
+            "\t-d-in,\t--plane-distance-inches\n"
+            "\n\t\t--resistivity <Resistivity [Ohm m]>\t\t= Input the resistivity in Ohm meters.\n"
+            "\n\t\t--temperature-coefficient <Temp. Coef. [1/C]>\t= Input the temperature coefficient.\n"
+            "\n\t-o,\t--output <File Name>\t\t\t\t= Write the name of the outputted file. Use '.txt' to create a text file. Use a single '.' to auto-generate\n\t\t\t\t\t\t\t\t  the name based on date/time. Can also write the full path to the file, e.g. 'C:/Users/user/output.txt'\n\t\t\t\t\t\t\t\t  or stop at 'C:/Users/user/' to use the auto-generated file name.\n"
+            "\n\t-m, \t--metric\t\t\t\t\t= Make the output units be metric.\n"
+            "\n\t-i, \t--imperial\t\t\t\t\t= Make the output units be imperial. Default behaviour, therefore just implemented for completion.\n"
             "\n\n\t\t\tCONVERSIONS\n"
             "\nUsage example 'twc --conversion-m-to-ozft2 <Value>'. Can use an SI prefix in the input when converting from meters.\n"
             "\n\t--convert-m-to-ozft2\t= From meters to ox per foot sq."
@@ -1337,8 +1335,8 @@ int output_help()
             "\n\t--convert-ozft2-to-mil\t= From ounce per foot sq. to mils."
             "\n\t--convert-ozft2-to-mm\t= From ounce per foot sq. to milimeters."
             "\n\t--convert-ozft2-to-um\t= From ounce per foot sq. to micrometers."
-            "\n\t--convert-F-to-C\t\t= From Fahrenheit to Celsius."
-            "\n\t--convert-C-to-F\t\t= From Celsius to Fahrenheit."
+            "\n\t--convert-F-to-C\t= From Fahrenheit to Celsius."
+            "\n\t--convert-C-to-F\t= From Celsius to Fahrenheit."
             "\n\t--convert-WmK-to-BTUhftF\t= From Watts per mili Kelvin to BTU/h*ft*F."
             "\n\t--convert-BTUhftF-to-WmK\t= From BTU/h*ft*F to Watts per mili Kelvin."
             "\n\n");
