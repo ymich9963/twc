@@ -12,8 +12,8 @@ void set_universal_defaults(ip_t* restrict ip)
 {
     ip->note[0] = '\0';
     ip->standard.num = IPC2152;
-    ip->standard.str[0] = '\0';
-    ip->method = '\0';
+    strcpy(ip->standard.str, "IPC2152"); 
+    ip->method = 'A'; 
     ip->uflag = 'm';
     ip->ofile.oflag = 0;
 
@@ -211,7 +211,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             continue;
         }
 
-        if (!(strcmp("-l-in", argv[i])) || !(strcmp("--trace-length-mil", argv[i]))) {
+        if (!(strcmp("-l-in", argv[i])) || !(strcmp("--trace-length-in", argv[i]))) {
             CHECK_RET(assign_values_units_imperial(&ip->trace_length, argv[i + 1], "in"));
             ip->trace_length.val = CONV_IN_TO_MM(ip->trace_length.val);
             i++;
@@ -231,7 +231,7 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             continue;
         }
 
-        if (!(strcmp("-t-in", argv[i])) || !(strcmp("--pcb-thickness-mil", argv[i]))) {
+        if (!(strcmp("-t-in", argv[i])) || !(strcmp("--pcb-thickness-in", argv[i]))) {
             CHECK_RET(assign_values_units_imperial(&ip->pcb_thickness, argv[i + 1], "mil"));
             ip->pcb_thickness.val = CONV_IN_TO_MIL(ip->pcb_thickness.val);
             i++;
@@ -252,15 +252,15 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             continue;
         }
 
-        if (!(strcmp("-p-in2", argv[i])) || !(strcmp("--plane-area-in2", argv[i]))) {
-            CHECK_RET(assign_values_units_imperial(&ip->plane_area, argv[i + 1], "in^2"));
+        if (!(strcmp("-p-mil2", argv[i])) || !(strcmp("--plane-area-mil2", argv[i]))) {
+            CHECK_RET(assign_values_units_imperial(&ip->plane_area, argv[i + 1], "mil^2"));
+            ip->plane_area.val = CONV_MIL2_TO_IN2(ip->plane_area.val);
             i++;
             continue;
         }
 
-        if (!(strcmp("-p-mil2", argv[i])) || !(strcmp("--plane-area-mil2", argv[i]))) {
-            CHECK_RET(assign_values_units_metric_area(&ip->plane_area, argv[i + 1], 'm'));
-            ip->plane_area.val = CONV_MIL2_TO_IN2(ip->plane_area.val);
+        if (!(strcmp("-p-in2", argv[i])) || !(strcmp("--plane-area-in2", argv[i]))) {
+            CHECK_RET(assign_values_units_imperial(&ip->plane_area, argv[i + 1], "in^2"));
             i++;
             continue;
         }
@@ -309,16 +309,16 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
 
         /* Conversions */
         if (!(strcmp("--convert-m-to-ozft2", argv[i]))) {
-            CHECK_RET(assign_values_units_metric_area(&conversion, argv[i + 1], '\0'));
-            printf("\n%lf\n\n", CONV_M_TO_OZFT2(val));
+            CHECK_RET(assign_values_units_metric(&conversion, argv[i + 1], '\0'));
+            printf("\n%lf\n\n", CONV_M_TO_OZFT2(conversion.val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
 
         if (!(strcmp("--convert-m-to-mil", argv[i]))) {
-            CHECK_RET(assign_values_units_metric_area(&conversion, argv[i + 1], '\0'));
-            printf("\n%lf\n\n", CONV_M_TO_MIL(val));
+            CHECK_RET(assign_values_units_metric(&conversion, argv[i + 1], '\0'));
+            printf("\n%lf\n\n", CONV_M_TO_MIL(conversion.val));
             printf("Converted using the TWC.\n");
 
             return 1;
@@ -342,19 +342,19 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
             return 1;
         }
 
-        if (!(strcmp("--convert-mil-to-mm", argv[i]))) {
+        if (!(strcmp("--convert-mil-to-ozft2", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_MIL_TO_MM(val));
+            printf("\n%lf\n\n", CONV_MIL_TO_OZFT2(val));
             printf("Converted using the TWC.\n");
 
             return 1;
         }
 
-        if (!(strcmp("--convert-mil-to-ozft2", argv[i]))) {
+        if (!(strcmp("--convert-mil-to-mm", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%lf", &val));
             CHECK_LIMITS(val);
-            printf("\n%lf\n\n", CONV_MIL_TO_OZFT2(val));
+            printf("\n%lf\n\n", CONV_MIL_TO_MM(val));
             printf("Converted using the TWC.\n");
 
             return 1;
@@ -507,24 +507,20 @@ int assign_values_units_metric(dbl_t* ip_dbl, char* optstring, char SI_derived_u
             val *= 1e-12;
             break;
         default:
-            fprintf(stderr, "Unknown SI prefix '%c'.", SI_prefix);
+            fprintf(stderr, "\nUnknown SI prefix '%c'.\n", SI_prefix);
             return 1;
     }
 
-    CHECK_LIMITS(val);
+    CHECK_LIMITS(outval);
 
     ip_dbl->units = malloc(3 * sizeof(char));
     switch(ret) {
-        case 0:
-            fprintf(stderr, "\nIssue with parsing input value '%s'.\n", optstring);
-            return 1;
         case 1:
             sprintf(ip_dbl->units, "%c",  SI_derived_units);
             break;
+        default:
         case 2:
             sprintf(ip_dbl->units, "%c%c", SI_prefix, SI_derived_units);
-            break;
-        default:
             break;
     }
 
@@ -540,7 +536,7 @@ int assign_values_units_metric_area(dbl_t* ip_dbl, char* optstring, char SI_deri
     double val = 0.0f;
     double outval = 0.0f;
 
-    sscanf(optstring, "%lf%c", &val, &SI_prefix);
+    int ret = sscanf(optstring, "%lf%c", &val, &SI_prefix);
     outval = val;
 
     switch(SI_prefix) {
@@ -574,13 +570,23 @@ int assign_values_units_metric_area(dbl_t* ip_dbl, char* optstring, char SI_deri
             val *= 1e-12 * 1e-12;
             break;
         default:
-            fprintf(stderr, "Unknown SI prefix '%c'.", SI_prefix);
+            fprintf(stderr, "\nUnknown SI prefix '%c'.\n", SI_prefix);
             return 1;
     }
 
-    CHECK_LIMITS(val);
+    CHECK_LIMITS(outval);
 
-    sprintf(ip_dbl->units, "%c%c%s", SI_derived_units, SI_prefix, "^2");
+    ip_dbl->units = malloc(5 * sizeof(char));
+    switch(ret) {
+        case 2:
+            sprintf(ip_dbl->units, "%c%c^2", SI_prefix, SI_derived_units);
+            break;
+        default:
+        case 1:
+            sprintf(ip_dbl->units, "%c^2",  SI_derived_units);
+            break;
+    }
+
     ip_dbl->val = val;
     ip_dbl->outval = outval;
 
@@ -630,16 +636,6 @@ int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
             i++;
             continue;
         }
-    }
-
-    /* Sets up the standard string when not specifying standard */
-    if (ip->standard.num == IPC2152 && ip->standard.str[0] == '\0') {
-        strcpy(ip->standard.str, "IPC2152"); 
-    }
-
-    /* Sets up the method char when not specifying method */
-    if (ip->standard.num == IPC2152 && ip->method == '\0') {
-        ip->method = 'A'; 
     }
 
     return 0;
@@ -724,14 +720,14 @@ int sel_functions(ip_t* restrict ip)
                     ip->outp = &output_results_IPC2152_C;
                     break;
                 default:
-                    fprintf(stderr, "\nMethod %c for the IPC-%d doesn't exist.\n", ip->method, ip->standard.num);
+                    fprintf(stderr, "\nMethod %c for the IPC%d doesn't exist.\n", ip->method, ip->standard.num);
 
                     return 1;
             }
 
             break;
         default:
-            fprintf(stderr, "\nStandard IPC-%d doesn't exist.\n", ip->standard.num);
+            fprintf(stderr, "\nStandard IPC%d doesn't exist.\n", ip->standard.num);
 
             return 1;
     }
@@ -837,7 +833,8 @@ void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
     /* Different equation for area listed on the website, and different one in the website code */
     // op->layer.cs_area.val = (117.555 * pow(ip->temp_rise.val, -0.913) + 1.15) * pow(ip->current.val, 0.84 * pow(ip->temp_rise.val, -0.018) + 1.159); 
     op->layer.cs_area.val = (110.515 * pow(ip->temp_rise.val, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->temp_rise.val, -0.102) + 1.129);
-    op->layer.trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.cs_area.val);
+    op->layer.trace_width.val = 0.7692 * op->layer.cs_area.val / ip->copper_weight.val;
+;
 
     /* Copper weight correction factor */
     if (ip->copper_weight.val == 2) {
@@ -876,7 +873,7 @@ void calcs_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
     op->layer.corr_cs_area.val = (110.515 * pow(ip->cf.temp_rise, -0.871) + 0.803) * pow(ip->current.val, 0.868 * pow(ip->cf.temp_rise, -0.102) + 1.129);
 
     /* Corrected Trace Width */
-    op->layer.corr_trace_width.val = 0.7692 * calc_trace_width_mils(ip, op->layer.corr_cs_area.val) * 1.378; // multiply by 1.378 to remove the conversion inside the function
+    op->layer.corr_trace_width.val = 0.7692 * op->layer.corr_cs_area.val / ip->copper_weight.val;
 
     calc_resistance_vdrop_ploss(ip, &op->layer);
 }
@@ -1311,9 +1308,9 @@ int output_help()
             "\t-t-mil,\t--pcb-thickness-mil\n"
             "\t-t-in,\t--pcb-thickness-in\n"
             "\n\t-e,\t--pcb-thermal-conductivity <Therm. Con. [W/mK]>\t= Input the PCB thermal conductivity in Watts per meter Kelvin.\n"
-            "\n\t-p,\t--plane-cs-area <Plane Area [m^2]>\t\t= Input the plane cross sectional area in meters squared. Use the other options below for imperial units.\n"
-            "\t-p-in2,\t--plane-cs-area-in2\n"
-            "\t-p-mil2,--plane-cs-area-mil2\n"
+            "\n\t-p,\t--plane-area <Plane Area [m^2]>\t\t= Input the plane cross sectional area in meters squared. Use the other options below for imperial units.\n"
+            "\t-p-in2,\t--plane-area-in2\n"
+            "\t-p-mil2,--plane-area-mil2\n"
             "\n\t-d,\t--plane-distance <Plane Distance [m]>\t\t= Input the plane distance in meters. Use the other options below for imperial units.\n"
             "\t-d-mil,\t--plane-distance-mil\n"
             "\t-d-in,\t--plane-distance-inches\n"
@@ -1324,7 +1321,7 @@ int output_help()
             "\n\t-i, \t--imperial\t\t\t\t\t= Make the output units be imperial. Default behaviour, therefore just implemented for completion.\n"
             "\n\n\t\t\tCONVERSIONS\n"
             "\nUsage example 'twc --conversion-m-to-ozft2 <Value>'. Can use an SI prefix in the input when converting from meters.\n"
-            "\n\t--convert-m-to-ozft2\t= From meters to ox per foot sq."
+            "\n\t--convert-m-to-ozft2\t= From meters to oz per foot sq."
             "\n\t--convert-m-to-mil\t= From meters to mil."
             "\n\t--convert-m2-to-in2\t= From meters sq. to inches sq."
             "\n\t--convert-m2-to-mil2\t= From meters sq. to mil sq."

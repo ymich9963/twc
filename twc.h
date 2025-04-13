@@ -32,9 +32,9 @@
 /* Conversion macros */
 
 /* Meters to X */
-#define	CONV_M_TO_IN(x) ((x) * 39.37007874)
-#define	CONV_M_TO_MIL(x) ((x) * 39370.07874)
-#define	CONV_M_TO_OZFT2(x) ((x) * 39370.07874 / 1.378)
+#define	CONV_M_TO_IN(x) ((x) * 39.370078740157)
+#define	CONV_M_TO_MIL(x) ((x) * 39370.078740157)
+#define	CONV_M_TO_OZFT2(x) ((x) * 39370.078740157 / 1.378)
 #define	CONV_M2_TO_MIL2(x) ((x) * 1e7 / (2.54 * 2.54))
 #define	CONV_M2_TO_IN2(x) ((x) * 1e4 / (2.54 * 2.54))
 
@@ -54,8 +54,9 @@
 
 /* Oz/ft^2 to X */
 #define	CONV_OZFT2_TO_MIL(x) ((x) * 1.378)
+#define	CONV_OZFT2_TO_M(x) ((x) * 1.378 * 0.0000254)
 #define	CONV_OZFT2_TO_MM(x) ((x) * 1.378 * 0.0254)
-#define	CONV_OZFT2_TO_UM(x) ((x) * 1.378 * 0.0254 * 1e3)
+#define	CONV_OZFT2_TO_UM(x) ((x) * 1.378 * 25.4)
 
 /* Other to X */
 #define	CONV_FAHR_TO_CELS(x) (((x) - 32) / 1.8)
@@ -199,6 +200,13 @@ void set_defv_IPC2152_A(ip_t* ip);
  * @param ip Input struct to store the inputs.
  */
 void set_defv_IPC2152_B(ip_t* ip);
+
+/**
+ * @brief Set default values needed for the IPC2152, Method C calculations.
+ *
+ * @param ip Input struct to store the inputs.
+ */
+void set_defv_IPC2152_C(ip_t* ip);
 
 /**
  * @brief Get the options and arguments provided.

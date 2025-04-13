@@ -33,11 +33,11 @@ clean:
 .PHONY: test
 test:: 
 	echo "Running tests..."
-	# $(MAKE) test -C ./test
 	cd ./test; \
 	$(MAKE) test;
 
 .PHONY: coverage 
 coverage: 
 	echo "Running coverage..."
-	$(MAKE) coverage -C ./test
+	cd ./test; \
+	$(MAKE) coverage;

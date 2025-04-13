@@ -62,9 +62,9 @@ Help for the Trace Width Calculator (TWC). Specify units with the long options, 
 
         -e,     --pcb-thermal-conductivity <Therm. Con. [W/mK]> = Input the PCB thermal conductivity in Watts per meter Kelvin.
 
-        -p,     --plane-cs-area <Plane Area [m^2]>              = Input the plane cross sectional area in meters squared. Use the other options below for imperial units.
-        -p-in2, --plane-cs-area-in2
-        -p-mil2,--plane-cs-area-mil2
+        -p,     --plane-area <Plane Area [m^2]>              = Input the plane cross sectional area in meters squared. Use the other options below for imperial units.
+        -p-in2, --plane-area-in2
+        -p-mil2,--plane-area-mil2
 
         -d,     --plane-distance <Plane Distance [m]>           = Input the plane distance in meters. Use the other options below for imperial units.
         -d-mil, --plane-distance-mil
@@ -87,7 +87,7 @@ Help for the Trace Width Calculator (TWC). Specify units with the long options, 
 
 Usage example 'twc --conversion-m-to-ozft2 <Value>'. Can use an SI prefix in the input when converting from meters.
 
-        --convert-m-to-ozft2    = From meters to ox per foot sq.
+        --convert-m-to-ozft2    = From meters to oz per foot sq.
         --convert-m-to-mil      = From meters to mil.
         --convert-m2-to-in2     = From meters sq. to inches sq.
         --convert-m2-to-mil2    = From meters sq. to mil sq.
@@ -182,7 +182,7 @@ make coverage
 Testing suite used is [Unity](https://github.com/ThrowTheSwitch/Unity) and LLVM-COV for coverage.
 
 ## Motivation
-The initial purpose of this tool was to collect most of the available online trace width calculator information and implementationso, and try to improve on them, while implementing them on an open-source offline command-line tool. The completely different implementations of the IPC2152 standard does put in question the validity of these calculators and their implementations. Thankfully, due to the open-source nature of the project, the differences between the implementations are clearly viewable, and the user can freely choose the one that seems best. Future development is definitely to encourage the creation of a TWC implementation of the IPC2152 method.
+I always found confusing how an open-source tool for this type of electronics design use didn't exist. Therefore I decided to make one! The initial purpose of this tool was to collect most of the available online trace width calculator information and implementationso, and try to improve on them, while implementing them on an open-source offline command-line tool. The completely different implementations of the IPC2152 standard does put in question the validity of these calculators and their implementations. Thankfully, due to the open-source nature of the project, the differences between the implementations are clearly viewable, and the user can freely choose the one that seems best. Future development is definitely to encourage the creation of a TWC implementation of the IPC2152 method.
 
 ## Sources
 Some sources for creating the tool are listed below, 
