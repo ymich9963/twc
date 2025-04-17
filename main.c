@@ -16,9 +16,6 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-//TODO: Put a sample of the help option in the docs
-//TODO: Describe in docs the workflow for development
-// Mention in docs that the default behaviour is metrimc
 //TODO: Add auto scaling of output units
 
 #include "twc.h"
@@ -51,7 +48,6 @@ int main(int argc, char** argv)
 
 	/* Calculate the values */
 	ip.proc(&ip, &op);
-
 
 	/* Set output units */
 	ip.outu(&ip, &op);

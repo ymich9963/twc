@@ -13,11 +13,14 @@ A calculator tool used to assist designing rigid PCB traces. Implements both the
 - Convert any value used in the tool with the conversion functions (use `--help` to list them or see below).
 - Optionally output the results to a file for saving.
 
+## Motivation
+I always found confusing how an open-source tool for this type of electronics design use didn't exist. Therefore I decided to make one! The initial purpose of this tool was to collect most of the available online trace width calculator information and implementationso, and try to improve on them, while implementing them on an open-source offline command-line tool. The completely different implementations of the IPC2152 standard does put in question the validity of these calculators and their implementations. Thankfully, due to the open-source nature of the project, the differences between the implementations are clearly viewable, and the user can freely choose the one that seems best. Future development is definitely to encourage the creation of a TWC implementation of the IPC2152 method.
+
 ## Methods
 One method is implemented for IPC2221 and three methods for IPC2152. The tool defaults to the IPC2152 standard, Method A.
 
 ### IPC2221
-- Method: Derived from [The CircuitCalculator.com Blog](https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/) and [Omni Calculator](https://www.omnicalculator.com/other/pcb-trace-width#how-to-calculate-the-width-of-a-pcb-trace). This is the only available method with this standard
+- Method: The ubiquitous way of calculating trace widths. Derived from [The CircuitCalculator.com Blog](https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/) and [Omni Calculator](https://www.omnicalculator.com/other/pcb-trace-width#how-to-calculate-the-width-of-a-pcb-trace). This is the only available method with this standard
 
 ### IPC2152
 - Method A: Derived from [NinjaCalc](https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152). Default method for the TWC.
@@ -169,7 +172,7 @@ Clone the repository and got to this directory. Using `make` simply run in a com
 ```
 make
 ```
-And `twc` should be build in a new `build/` directory.
+And `twc` should be build in a new `build/` directory. Check the `docs\` for info on how to contribute to the project.
 
 ## Tests and Coverage
 Running the tests or coverage can be done by running,
@@ -180,9 +183,6 @@ make test
 make coverage
 ```
 Testing suite used is [Unity](https://github.com/ThrowTheSwitch/Unity) and LLVM-COV for coverage.
-
-## Motivation
-I always found confusing how an open-source tool for this type of electronics design use didn't exist. Therefore I decided to make one! The initial purpose of this tool was to collect most of the available online trace width calculator information and implementationso, and try to improve on them, while implementing them on an open-source offline command-line tool. The completely different implementations of the IPC2152 standard does put in question the validity of these calculators and their implementations. Thankfully, due to the open-source nature of the project, the differences between the implementations are clearly viewable, and the user can freely choose the one that seems best. Future development is definitely to encourage the creation of a TWC implementation of the IPC2152 method.
 
 ## Sources
 Some sources for creating the tool are listed below, 
