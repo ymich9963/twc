@@ -832,6 +832,13 @@ void test_get_options()
     split(cmd13, argv, &argc);
     TEST_ASSERT_EQUAL_INT(0, get_options(argc, argv, &ip));
     reset(argv, &ip, 30);
+
+    char cmd14[] = "first -c 1 -w 1 --note '";
+    char note_test[] = "'Testing the limits of the --note option. Ut officia velit impedit. Voluptate rerum nobis consequuntur nulla. Ipsam nihil aperiam est. At quas quibusdam perferendis autem deserunt totam. Et aspernatur autem corrupti ut earum velit. Itaque velit exercitationem dolor. Repellat sed iusto adipisci fugit. Quisquam cumque dolore omnis velit quos voluptatem nihil reprehenderit. Esse vitae quibusdam vitae asperiores voluptas ex. Omnis perferendis et est magni qui. Error totam ut autem. Fuga molestiae non assumenda nam sed sequi voluptatibus. Tempore nesciunt sit laborum pariatur consectetur id est. Exercitationem enim necessitatibus est. Repudiandae sit voluptates voluptas labore omnis inventore vero. Rerum fuga adipisci quibusdam possimus quis. Excepturi consequuntur assumenda saepe suscipit ut. Soluta qui amet voluptatibus aut ducimus illum. Facilis repellat omnis sint ipsa expedita dolorem corrupti omnis. Occaecati ipsum non eum consequatur commodi omnis dolorum. Consequuntur asperiores reiciendis ipsam enim ex fugiat nobis sequi.'";
+    split(cmd14, argv, &argc);
+    argv[6] = note_test;
+    TEST_ASSERT_EQUAL_INT(1, get_options(argc, argv, &ip));
+    reset(argv, &ip, 30);
 }
 
 void test_assign_values_units_metric()
@@ -905,7 +912,10 @@ void test_assign_values_units_metric()
     TEST_ASSERT_EQUAL_INT(1, assign_values_units_metric(&ip_dbl, optstring11, 't'));
 
     char optstring12[] = "!!!!";
-    TEST_ASSERT_EQUAL_INT(1, assign_values_units_metric_area(&ip_dbl, optstring12, 't'));
+    TEST_ASSERT_EQUAL_INT(0, assign_values_units_metric_area(&ip_dbl, optstring12, 't'));
+    TEST_ASSERT_EQUAL_INT(0, ip_dbl.val);
+    TEST_ASSERT_EQUAL_INT(0, ip_dbl.outval);
+    
 }
 
 void test_assign_values_units_metric_area()
@@ -979,7 +989,9 @@ void test_assign_values_units_metric_area()
     TEST_ASSERT_EQUAL_INT(1, assign_values_units_metric_area(&ip_dbl, optstring11, 't'));
 
     char optstring12[] = "!!!!";
-    TEST_ASSERT_EQUAL_INT(1, assign_values_units_metric_area(&ip_dbl, optstring12, 't'));
+    TEST_ASSERT_EQUAL_INT(0, assign_values_units_metric_area(&ip_dbl, optstring12, 't'));
+    TEST_ASSERT_EQUAL_INT(0, ip_dbl.val);
+    TEST_ASSERT_EQUAL_INT(0, ip_dbl.outval);
 }
 
 void test_assign_values_units_imperial()

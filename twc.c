@@ -133,7 +133,12 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
         }
 
         if (!(strcmp("-n", argv[i])) || !(strcmp("--note", argv[i]))) {
-            strcpy(ip->note, argv[i + 1]); 
+            if (strlen(argv[i + 1]) < MAX_NOTE_CHAR_COUNT) {
+                strcpy(ip->note, argv[i + 1]); 
+            } else {
+                fprintf(stderr, "\nExceeded max note character limit.\n");
+                return 1;
+            }
             i++;
             continue;
         }
@@ -756,6 +761,7 @@ void set_output_file(ofile_t* restrict ofile, char* restrict optarg)
 {
     // TODO: Make the path, destination, and file name sizes, dynamically change.
     const size_t len = strlen(optarg);
+    char path[PATH_LEN];
 
     /* If given a '.' use autogenerate a file name based on the current date/time */
     if (optarg[0] == '.' && len <= 2) {
@@ -771,7 +777,8 @@ void set_output_file(ofile_t* restrict ofile, char* restrict optarg)
         strcpy(ofile->path, "\0");
     }
 
-    sprintf(ofile->path, "%s%s", ofile->path, ofile->fname);
+    sprintf(path, "%s%s", ofile->path, ofile->fname);
+    strcpy(ofile->path, path);
 }
 
 void calcs_IPC2221(ip_t* restrict ip, op_t* restrict op)
