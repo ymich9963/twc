@@ -28,7 +28,14 @@ One method is implemented for IPC2221 and three methods for IPC2152. The tool de
 - Method C: Derived from [Sierra Circuits](https://twcalculator.app.protoexpress.com/).
 
 ## Installing
-To install and use the `twc` command. Make sure to have the latest version, place it in a folder, and add that folder path to your Enviroment Variables.
+To install automatically, use the install script located in `install/` by using the command below,
+
+```
+irm "https://raw.githubusercontent.com/ymich9963/twc/refs/h
+eads/main/install/twc-windows-install.ps1" | iex
+```
+
+The script downloads the executable, moves it to `C:\Program Files\twc\`, and adds that path to the system environment variable. If you're not on Windows or do not want the automated script feel free to download the executable and use it however you like.
 
 ## Using
 Mandatory inputs to get any kind of output are *Copper Weight* and *Current* specified with `-w` and `-c` respectively. TWC defaults to metric units for input and output, as well as the IPC2152 standard using Method A. TWC accepts SI prefixes on all SI units used in the software (Amps, metres, etc.) from Terrra (T) down to pico (p).
