@@ -20,7 +20,7 @@ I always found confusing how an open-source tool for this type of electronics de
 One method is implemented for IPC2221 and three methods for IPC2152. The tool defaults to the IPC2152 standard, Method A.
 
 ### IPC2221
-- Method: The ubiquitous way of calculating trace widths. Derived from [The CircuitCalculator.com Blog](https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/) and [Omni Calculator](https://www.omnicalculator.com/other/pcb-trace-width#how-to-calculate-the-width-of-a-pcb-trace). This is the only available method with this standard
+- Method: The ubiquitous way of calculating trace widths. Derived from [The CircuitCalculator.com Blog](https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/) and [Omni Calculator](https://www.omnicalculator.com/other/pcb-trace-width#how-to-calculate-the-width-of-a-pcb-trace). This is the only available method with this standard.
 
 ### IPC2152
 - Method A: Derived from [NinjaCalc](https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152). Default method for the TWC.
