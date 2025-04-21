@@ -31,4 +31,5 @@ if ($TWC_path_check.Count -igt 1) {
 }
 
 Write-Output "Succesfully installed TWC."
+Exit
 
