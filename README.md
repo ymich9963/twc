@@ -31,8 +31,7 @@ One method is implemented for IPC2221 and three methods for IPC2152. The tool de
 To install automatically, use the install script located in `install/` by using the command below,
 
 ```
-irm "https://raw.githubusercontent.com/ymich9963/twc/refs/h
-eads/main/install/twc-windows-install.ps1" | iex
+irm "https://raw.githubusercontent.com/ymich9963/twc/refs/heads/main/install/twc-windows-install.ps1" | iex
 ```
 
 The script downloads the executable, moves it to `C:\Program Files\twc\`, and adds that path to the system environment variable. If you're not on Windows or do not want the automated script feel free to download the executable and use it however you like.
