@@ -7,7 +7,7 @@ if (Test-Path -Path $TWC_install_path) {
 }
 
 mkdir $TWC_install_path 
-wget $TWC_exe_link
+curl -O $TWC_exe_link
 Move-Item twc.exe $TWC_install_path # mv command
 Write-Output "Downloaded executable." # echo command
 
