@@ -31,5 +31,8 @@ if ($TWC_path_check.Count -igt 1) {
 }
 
 Write-Output "Succesfully installed TWC."
+
+Read-Host -Prompt "Press Enter to exit"
+
 Exit
 
