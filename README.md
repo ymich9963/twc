@@ -28,7 +28,7 @@ One method is implemented for IPC2221 and three methods for IPC2152. The tool de
 - Method C: Derived from [Sierra Circuits](https://twcalculator.app.protoexpress.com/).
 
 ## Installing
-To install automatically, use the install script located in `install/` by using the command below,
+To install automatically, use the install script located in `install/` by executing the command below in a PowerShell terminal with Admin rights,
 
 ```
 irm "https://raw.githubusercontent.com/ymich9963/twc/refs/heads/main/install/twc-windows-install.ps1" | iex
