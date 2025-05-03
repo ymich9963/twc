@@ -37,7 +37,7 @@ To install automatically, use the install script located in `install/` by execut
 irm "https://raw.githubusercontent.com/ymich9963/twc/refs/heads/main/install/twc-windows-install.ps1" | iex
 ```
 
-The script downloads the executable, moves it to `C:\Program Files\twc\`, and adds that path to the system environment variable. If you do not want the automated script feel free to download the executable and use it however you like.
+The script downloads the executable, moves it to `C:\Program Files\twc\`, and adds that path to the system environment variable. If you do not want the automated script feel free to download the executable or build from source. In case your organisation doesn't allow you to install from the script due to protected paths, download the script and change the `$TWC_install_path` variable to a location that suits you.
 
 ### macOS & Linux
 Please the Building section. Use `make` to build from source.
