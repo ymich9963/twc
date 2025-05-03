@@ -184,7 +184,7 @@ Clone the repository and got to this directory. Using `make` simply run in a com
 ```
 make
 ```
-And `twc` should be build in a new `build/` directory. Check the `docs\` for info on how to contribute to the project.
+And `twc` should be build in a new `build/` directory.
 
 ## Tests and Coverage
 Running the tests or coverage can be done by running,
