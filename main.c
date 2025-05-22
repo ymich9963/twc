@@ -18,6 +18,16 @@
 
 //TODO: Add auto scaling of output units
 
+// DONE: Improved outputs.
+// Added --quiet/-q
+// Added --precision
+// Added some nice colours to terminal output
+// Fixed some minor output bugs
+// TODO: Change version to 1.2
+// Add these features to the docs
+// Make a new page to the how to use
+// Add the --version to --help
+
 #include "twc.h"
 
 int main(int argc, char** argv)
