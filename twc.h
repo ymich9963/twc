@@ -22,39 +22,46 @@
 #define	VAL_MAX 999999999.999999999f
 #define	VAL_MIN 0.0f
 #define	STD_NAME_LEN 8
+#define	METHOD_STR_LEN 2
 #define	OUT_FILE_LEN 30
 #define	PATH_LEN 255
-#define	WELCOME_STR "\nTrace Width Calculator, Made by Yiannis Michael (2024). \n\nPlease 'type twc -c <Current [A]> -w-oz <Copper Weight [oz/ft^2]>' to get output results. Use '--help' for explanation of the flags and more advanced usage, for different units, optional inputs, etc.\n\nThis tool should only be used to assist design decisions and not be used to replace professional advice. Developer(s) have no liability whatsoever.\n\n" "This program is distributed in the hope that it will be useful,\nbut WITHOUT ANY WARRANTY; without even the implied warranty of\nMERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\nGNU General Public License for more details.\n"
+#define	WELCOME_STR "\nTrace Width Calculator, Made by Yiannis Michael (2024).\n\nType 'twc -c <Current [A]> -w-oz <Copper Weight [oz/ft^2]>' to get output results.\nUse '--help' for explanation of the options.\n\nThis tool should only be used to assist design decisions and not be used to replace professional advice. Developer(s) have no liability whatsoever.\n\n" "This program is distributed in the hope that it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\nSee the GNU General Public License for more details.\n"
 #define	FEW_ARGS_STR "\nAn input of at least current and copper weight is required. Use no arguments to get the welcome message and either '-h' or '--help' to get the list of commands.\n"
 #define	VERSION_STR "\nTrace Width Calculator (TWC)\nVersion 1.2.0.\n"
-#define	DISCLAIMER_STR "\nDISCLAIMER: Design assistance by the TWC tool is provided with no liability whatsover. For final decisions on electronics designs, please consult an actual qualified person.\n"
+#define	DISCLAIMER_STR "Design assistance by the TWC tool is provided with no liability whatsover.\nFor final decisions on electronics designs, please consult an actual qualified person.\n"
+
+/* Links to online calculators */
+#define LINK_CIRCUIT_CALCULATOR "https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/"
+#define LINK_NINJA_CALC         "https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152"
+#define LINK_SMPS               "https://www.smps.us/pcb-calculator.html"
+#define LINK_SIERRA_CIRCUITS    "https://twcalculator.app.protoexpress.com/"
 
 /* Conversion macros */
 
 /* Meters to X */
-#define	CONV_M_TO_IN(x) ((x) * 39.370078740157)
-#define	CONV_M_TO_MIL(x) ((x) * 39370.078740157)
-#define	CONV_M_TO_OZFT2(x) ((x) * 39370.078740157 / 1.378)
-#define	CONV_M2_TO_MIL2(x) ((x) * 1e7 / (2.54 * 2.54))
-#define	CONV_M2_TO_IN2(x) ((x) * 1e4 / (2.54 * 2.54))
+#define	CONV_M_TO_IN(x)     ((x) * 39.370078740157)
+#define	CONV_M_TO_MIL(x)    ((x) * 39370.078740157)
+#define	CONV_M_TO_OZFT2(x)  ((x) * 39370.078740157 / 1.378)
+#define	CONV_M2_TO_MIL2(x)  ((x) * 1e7 / (2.54 * 2.54))
+#define	CONV_M2_TO_IN2(x)   ((x) * 1e4 / (2.54 * 2.54))
 
 /* Inches to X */
-#define	CONV_IN_TO_M(x) ((x) * 0.0254)
-#define	CONV_IN_TO_MM(x) ((x) * 25.4)
-#define	CONV_IN_TO_MIL(x) ((x) * 1e3)
+#define	CONV_IN_TO_M(x)     ((x) * 0.0254)
+#define	CONV_IN_TO_MM(x)    ((x) * 25.4)
+#define	CONV_IN_TO_MIL(x)   ((x) * 1e3)
 
 /* Mils to X */
-#define	CONV_MIL_TO_M(x) ((x) * 0.0000254)
-#define	CONV_MIL_TO_MM(x) ((x) * 0.0254)
+#define	CONV_MIL_TO_M(x)    ((x) * 0.0000254)
+#define	CONV_MIL_TO_MM(x)   ((x) * 0.0254)
 #define	CONV_MIL_TO_OZFT2(x) ((x) / 1.378)   // most sources say 1.37, few others say 1.378.
-#define	CONV_MIL2_TO_M2(x) ((x) * 0.0000254 * 0.0000254)
+#define	CONV_MIL2_TO_M2(x)  ((x) * 0.0000254 * 0.0000254)
 #define	CONV_MIL2_TO_CM2(x) ((x) * 0.00254 * 0.00254)
 #define	CONV_MIL2_TO_MM2(x) ((x) * 0.0254 * 0.0254)
 #define	CONV_MIL2_TO_IN2(x) ((x) * 0.000001)
 
 /* Oz/ft^2 to X */
 #define	CONV_OZFT2_TO_MIL(x) ((x) * 1.378)
-#define	CONV_OZFT2_TO_M(x) ((x) * 1.378 * 0.0000254)
+#define	CONV_OZFT2_TO_M(x)  ((x) * 1.378 * 0.0000254)
 #define	CONV_OZFT2_TO_MM(x) ((x) * 1.378 * 0.0254)
 #define	CONV_OZFT2_TO_UM(x) ((x) * 1.378 * 25.4)
 
@@ -149,7 +156,7 @@ typedef struct IP {
 	/* Optional Inputs */
 	char note[MAX_NOTE_CHAR_COUNT]; // Add a note about this output 
 	std_t standard;             // IPC standard
-	char method;                // Method to use for calculations
+	char method[METHOD_STR_LEN];// Method to use for calculations. Single character.
 	dbl_t temp_rise;            // [Celsius]
 	dbl_t temp_ambient;         // [Celsius]
 	dbl_t trace_length;         // [cm]
@@ -437,6 +444,36 @@ double calc_vdrop(ip_t* ip, double resistance);
  * @return Power loss in type double.
  */
 double calc_power_loss(ip_t* ip, double vdrop);
+
+/**
+ * @brief Get the specified text with the specified ANSI colours.
+ *
+ * @param str Text to be returned with ANSI colours.
+ * @param FG FG or foreground value of the ANSI colour.
+ * @param BG BG or background value of the ANSI colour.
+ * @param ignore_flag Flag to ignore setting the colours for the string.
+ * @return The specified text with the ANSI colours.
+ */
+char* get_text_ansi_colours(char* str, int FG, int BG, uint8_t ignore_flag);
+
+/**
+ * @brief Print the credits string which is after the appendix.
+ *
+ * @param file Pointer to output file.
+ * @param standard Standard string.
+ * @param method Method character (techincally string).
+ * @param link Link to the online calculator.
+ * @param no_colour_flag Flag to specify no ANSI colour.
+ */
+void print_credits_string(FILE* file, char* standard, char* method, char* link, uint8_t no_colour_flag);
+
+/**
+ * @brief Print the disclaimer string at the end of the output.
+ *
+ * @param file Pointer to output file.
+ * @param no_colour_flag Flag to specify no ANSI colour.
+ */
+void print_disclaimer_string(FILE* file, uint8_t no_colour_flag);
 
 /**
  * @brief Outputted results when using the IPC2221.

@@ -17,16 +17,16 @@
  */
 
 //TODO: Add auto scaling of output units
+//TODO: Write code for making the numbers touch the dots. Might need to add to the structs.
 
 // DONE: Improved outputs.
 // Added --quiet/-q
 // Added --precision
 // Added some nice colours to terminal output
 // Fixed some minor output bugs
-// TODO: Change version to 1.2
-// Add these features to the docs
-// Make a new page to the how to use
-// Add the --version to --help
+// TODO: Fix image in README.
+// DO coverity
+// Use note above for release notes
 
 #include "twc.h"
 

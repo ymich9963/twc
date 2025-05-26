@@ -17,11 +17,27 @@ void test_output_help()
     TEST_ASSERT_EQUAL_INT(0, output_help());
 }
 
+void test_print_output_strings() 
+{
+    print_credits_string(stdout, "IPC2152", "A", "link", 0);
+    print_credits_string(stdout, "IPC2152", "A", "link", 1);
+
+    print_disclaimer_string(stdout, 0);
+    print_disclaimer_string(stdout, 1);
+}
+
+void test_get_text_ansi_colours()
+{
+    TEST_ASSERT_EQUAL_INT(0, strcmp("\x1b[0m\x1b[1;1mstr\x1b[0m", get_text_ansi_colours("str", 1, 1, 0)));
+    TEST_ASSERT_EQUAL_INT(0, strcmp("str", get_text_ansi_colours("str", 1, 1, 1)));
+    TEST_ASSERT_EQUAL_INT(0, strcmp("error", get_text_ansi_colours("sssssssssssssssssssssssssstttttttttttttttttttttttttttttttttttrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", 1, 1, 0)));
+}
+
 void test_output_results_IPC2221()
 {
     ip_t ip = {
         .standard.str = "IPC2221",
-        .method = 'A',
+        .method = "A",
         .current = {
             .val = 1,
             .units = "test"
@@ -100,7 +116,7 @@ void test_output_results_IPC2152_C()
 {
     ip_t ip = {
         .standard.str = "IPC2152",
-        .method = 'C',
+        .method = "C",
         .current = {
             .val = 1,
             .units = "test"
@@ -179,7 +195,7 @@ void test_output_results_IPC2152_B()
 {
     ip_t ip = {
         .standard.str = "IPC2152",
-        .method = 'B',
+        .method = "B",
         .current = {
             .val = 1,
             .units = "test"
@@ -258,7 +274,7 @@ void test_output_results_IPC2152_A()
 {
     ip_t ip = {
         .standard.str = "IPC2152",
-        .method = 'A',
+        .method = "A",
         .current = {
             .outval = 1,
             .units = "test"
@@ -625,33 +641,33 @@ void test_sel_functions()
 
     ip.standard.num = IPC2221;
     memcpy(ip.standard.str, "IPC2221", 8);
-    ip.method = 'A';
+    memcpy(ip.method, "A", 2);
     TEST_ASSERT_EQUAL_INT(0, sel_functions(&ip));
 
     ip.standard.num = IPC2152;
     memcpy(ip.standard.str, "IPC2152", 8);
-    ip.method = 'A';
+    memcpy(ip.method, "A", 2);
     TEST_ASSERT_EQUAL_INT(0, sel_functions(&ip));
 
     ip.standard.num = IPC2152;
     memcpy(ip.standard.str, "IPC2152", 8); 
-    ip.method = 'B';
+    memcpy(ip.method, "B", 2);
     TEST_ASSERT_EQUAL_INT(0, sel_functions(&ip));
 
     ip.standard.num = IPC2152;
     memcpy(ip.standard.str, "IPC2152", 8); 
-    ip.method = 'C';
+    memcpy(ip.method, "C", 2);
     TEST_ASSERT_EQUAL_INT(0, sel_functions(&ip));
 
     ip.standard.num = 12345;
     TEST_ASSERT_EQUAL_INT(1, sel_functions(&ip));
 
     ip.standard.num = IPC2152;
-    ip.method = 'F';
+    memcpy(ip.method, "F", 2);
     TEST_ASSERT_EQUAL_INT(1, sel_functions(&ip));
 
     ip.standard.num = IPC2221;
-    ip.method = 'F';
+    memcpy(ip.method, "F", 2);
     TEST_ASSERT_EQUAL_INT(0, sel_functions(&ip));
 }
 
@@ -768,7 +784,7 @@ void test_get_options()
     TEST_ASSERT_EQUAL_INT(1, get_options(argc, argv, &ip));
     reset(argv, &ip, 30);
 
-    char cmd1[] = "first -c 1 -w 1 -r 10 -a 25 -l 1 -t 1.6 -e 1 -p 1 -d 1 -i -m -n 'hey'";
+    char cmd1[] = "first -c 1 -w 1 -r 10 -a 25 -l 1 -t 1.6 -e 1 -p 1 -d 1 -i -m -n 'hey' -q -x";
     split(cmd1, argv, &argc);
     TEST_ASSERT_EQUAL_INT(0, get_options(argc, argv, &ip));
     reset(argv, &ip, 30);
@@ -828,15 +844,13 @@ void test_get_options()
     TEST_ASSERT_EQUAL_INT(0, get_options(argc, argv, &ip));
     reset(argv, &ip, 30);
 
-    char cmd13[] = "first -c 1 -w 1 --note 'hey'";
+    char cmd13[] = "first -c 1 -w 1 --note 'hey' --precision 4 --no-colour";
     split(cmd13, argv, &argc);
     TEST_ASSERT_EQUAL_INT(0, get_options(argc, argv, &ip));
     reset(argv, &ip, 30);
 
-    char cmd14[] = "first -c 1 -w 1 --note '";
-    char note_test[] = "'Testing the limits of the --note option. Ut officia velit impedit. Voluptate rerum nobis consequuntur nulla. Ipsam nihil aperiam est. At quas quibusdam perferendis autem deserunt totam. Et aspernatur autem corrupti ut earum velit. Itaque velit exercitationem dolor. Repellat sed iusto adipisci fugit. Quisquam cumque dolore omnis velit quos voluptatem nihil reprehenderit. Esse vitae quibusdam vitae asperiores voluptas ex. Omnis perferendis et est magni qui. Error totam ut autem. Fuga molestiae non assumenda nam sed sequi voluptatibus. Tempore nesciunt sit laborum pariatur consectetur id est. Exercitationem enim necessitatibus est. Repudiandae sit voluptates voluptas labore omnis inventore vero. Rerum fuga adipisci quibusdam possimus quis. Excepturi consequuntur assumenda saepe suscipit ut. Soluta qui amet voluptatibus aut ducimus illum. Facilis repellat omnis sint ipsa expedita dolorem corrupti omnis. Occaecati ipsum non eum consequatur commodi omnis dolorum. Consequuntur asperiores reiciendis ipsam enim ex fugiat nobis sequi.'";
+    char cmd14[] = "first -c 1 -w 1 --note 'Testingthelimitsofthe--noteoption.Utofficiavelitimpedit.Voluptatererumnobisconsequunturnulla.Ipsamnihilaperiamest.Atquasquibusdamperferendisautemdeserunttotam.Etaspernaturautemcorruptiutearumvelit.Itaquevelitexercitationemdolor.Repellatsediustoadipiscifugit.Quisquamcumquedoloreomnisvelitquosvoluptatemnihilreprehenderit.Essevitaequibusdamvitaeasperioresvoluptasex.'";
     split(cmd14, argv, &argc);
-    argv[6] = note_test;
     TEST_ASSERT_EQUAL_INT(1, get_options(argc, argv, &ip));
     reset(argv, &ip, 30);
 }
@@ -1106,6 +1120,8 @@ int main()
 {
     UNITY_BEGIN();
     RUN_TEST(test_output_help);
+    RUN_TEST(test_print_output_strings);
+    RUN_TEST(test_get_text_ansi_colours);
     RUN_TEST(test_output_results_IPC2221);
     RUN_TEST(test_output_results_IPC2152_A);
     RUN_TEST(test_output_results_IPC2152_B);

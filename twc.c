@@ -13,11 +13,11 @@ void set_universal_defaults(ip_t* restrict ip)
     ip->note[0] = '\0';
     ip->standard.num = IPC2152;
     strcpy(ip->standard.str, "IPC2152"); 
-    ip->method = 'A'; 
+    strcpy(ip->method, "A"); 
     ip->uflag = 'm';
     ip->ofile.oflag = 0;
     ip->precision = 5;
-    ip->width = ip->precision + 4; // 4 is for the separator and 3 numbers after it
+    ip->width = ip->precision + 4; // 4 is for the separator and 3 digits after it
     ip->no_colour_flag = 0;
     ip->quiet_flag = 0;
 
@@ -129,12 +129,12 @@ int get_options(int argc, char** restrict argv, ip_t* restrict ip)
         }
 
         if (!(strcmp("-n", argv[i])) || !(strcmp("--note", argv[i]))) {
-            if (strlen(argv[i + 1]) < MAX_NOTE_CHAR_COUNT) {
-                strcpy(ip->note, argv[i + 1]); 
-            } else {
+            if (strlen(argv[i + 1]) >= MAX_NOTE_CHAR_COUNT) {
                 fprintf(stderr, "\nExceeded max note character limit.\n");
+
                 return 1;
             }
+            strcpy(ip->note, argv[i + 1]); 
             i++;
             continue;
         }
@@ -651,7 +651,7 @@ int get_standard_method(int argc, char** restrict argv, ip_t* restrict ip)
         if (!(strcmp("--method", argv[i]))) {
             CHECK_RES(sscanf(argv[i + 1], "%s", strval));
             CHECK_RET(check_method(strval[0],  method_arr, msize));
-            ip->method = strval[0];
+            ip->method[0] = strval[0];
             i++;
             continue;
         }
@@ -707,7 +707,7 @@ int sel_functions(ip_t* restrict ip)
     switch (ip->standard.num) {
         case IPC2221:
 
-            switch (ip->method) {
+            switch (ip->method[0]) {
                 default:
                     ip->defv = &set_defv_IPC2221;
                     ip->proc = &calcs_IPC2221;
@@ -719,7 +719,7 @@ int sel_functions(ip_t* restrict ip)
             break;
         case IPC2152:
 
-            switch (ip->method) {
+            switch (ip->method[0]) {
                 case 'A':
                     ip->defv = &set_defv_IPC2152_A;
                     ip->proc = &calcs_IPC2152_A;
@@ -739,7 +739,7 @@ int sel_functions(ip_t* restrict ip)
                     ip->outp = &output_results_IPC2152_C;
                     break;
                 default:
-                    fprintf(stderr, "\nMethod %c for the IPC%d doesn't exist.\n", ip->method, ip->standard.num);
+                    fprintf(stderr, "\nMethod %c for the IPC%d doesn't exist.\n", ip->method[0], ip->standard.num);
 
                     return 1;
             }
@@ -1069,7 +1069,7 @@ char* get_text_ansi_colours(char* restrict str, int FG, int BG, uint8_t ignore_f
     static char ret[27 + 100]; // 27 for the format + 100 character text
 
     if (strlen(str) >= 100) {
-        return "\0";
+        return "error";
     }
 
     sprintf(ret, "\x1b[0m\x1b[%d;%dm%s\x1b[0m", FG, BG, str);
@@ -1077,19 +1077,38 @@ char* get_text_ansi_colours(char* restrict str, int FG, int BG, uint8_t ignore_f
     return ret; 
 }
 
+void print_credits_string(FILE* file, char* restrict standard, char* restrict method, char* restrict link, uint8_t no_colour_flag)
+{
+    fprintf(file, "\n");
+    fprintf(file, "%s", get_text_ansi_colours("TWC used ", 30, 47, no_colour_flag));
+    fprintf(file, "%s", get_text_ansi_colours(standard, 30, 47, no_colour_flag));
+    fprintf(file, "%s", get_text_ansi_colours(" Method ", 30, 47, no_colour_flag));
+    fprintf(file, "%s", get_text_ansi_colours(method, 30, 47, no_colour_flag));
+    fprintf(file, "%s", get_text_ansi_colours(" derived from: ", 30, 47, no_colour_flag));
+    fprintf(file, "\n");
+    fprintf(file, "%s", get_text_ansi_colours(link, 30, 47, no_colour_flag));
+}
+
+void print_disclaimer_string(FILE* file, uint8_t no_colour_flag)
+{
+    fprintf(file, "\n\n%s\n" DISCLAIMER_STR "\n", get_text_ansi_colours("DISCLAIMER:", 30, 47, no_colour_flag));
+}
+
 int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
     fprintf(file, file == stdout ? "\n" : '\0');
 
-    fprintf(file, ip->note[0] == '\0' ? '\0' : "Note:\n%s\n\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? '\0' : "%s\n%s\n\n",
+            get_text_ansi_colours("NOTE:", 30, 47, ip->no_colour_flag),
+            ip->note);
 
     fprintf(file,
             "\t\t%s\n"
-            "Current:\t\t%*.*lf [%s]\n"
-            "Copper Weight:\t\t%*.*lf [%s]\n"
-            "Temperature, Rise:\t%*.*lf [%s]\n"
-            "Temperature, Ambient:\t%*.*lf [%s]\n"
-            "Trace Length:\t\t%*.*lf [%s]\n",
+            "Current:................%*.*lf [%s]\n"
+            "Copper Weight:..........%*.*lf [%s]\n"
+            "Temperature, Rise:......%*.*lf [%s]\n"
+            "Temperature, Ambient:...%*.*lf [%s]\n"
+            "Trace Length:...........%*.*lf [%s]\n",
             get_text_ansi_colours("-INPUTS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, ip->current.outval, ip->current.units,
             ip->width, ip->precision, ip->copper_weight.outval, ip->copper_weight.units,
@@ -1099,34 +1118,36 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
     fprintf(file,
             "\n\t    %s\n"
-            "Area: \t\t\t%*.*lf [%s]\n"
-            "Width:\t\t\t%*.*lf [%s]\n",
+            "Area:...................%*.*lf [%s]\n"
+            "Width:..................%*.*lf [%s]\n",
             get_text_ansi_colours("-EXTERNAL LAYERS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, op->extl.cs_area.val, op->extl.cs_area.units,
             ip->width, ip->precision, op->extl.trace_width.val, op->extl.trace_width.units);
 
     fprintf(file,
             ip->trace_length.val > 0 ?
-            "Resistance:\t\t%*.*lf [Ohm]\n"
-            "Voltage Drop:\t\t%*.*lf [V]\n"
-            "Power Loss:\t\t%*.*lf [W]\n" : "\r",
+            "Resistance:.............%*.*lf [Ohm]\n"
+            "Voltage Drop:...........%*.*lf [V]\n"
+            "Power Loss:.............%*.*lf [W]\n"
+            : "\r",
             ip->width, ip->precision, op->extl.resistance.val,
             ip->width, ip->precision,  op->extl.voltage_drop.val,
             ip->width, ip->precision, op->extl.power_loss.val);
 
     fprintf(file,
             "\n\t    %s\n"
-            "Area:\t\t\t%*.*lf [%s]\n"
-            "Width:\t\t\t%*.*lf [%s]\n",
+            "Area:...................%*.*lf [%s]\n"
+            "Width:..................%*.*lf [%s]\n",
             get_text_ansi_colours("-INTERNAL LAYERS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, op->intl.cs_area.val, op->intl.cs_area.units,
             ip->width, ip->precision, op->intl.trace_width.val, op->intl.trace_width.units);
 
     fprintf(file,
             ip->trace_length.val > 0 ?
-            "Resistance:\t\t%*.*lf [Ohm]\n"
-            "Voltage Drop:\t\t%*.*lf [V]\n"
-            "Power Loss:\t\t%*.*lf [W]\n" : "\nOptionally specify length for V/I/P calculations.\n",
+            "Resistance:.............%*.*lf [Ohm]\n"
+            "Voltage Drop:...........%*.*lf [V]\n"
+            "Power Loss:.............%*.*lf [W]\n"
+            : "\nOptionally specify length for V/I/P calculations.\n",
             ip->width, ip->precision, op->intl.resistance.val,
             ip->width, ip->precision, op->intl.voltage_drop.val,
             ip->width, ip->precision, op->intl.power_loss.val);
@@ -1151,7 +1172,9 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
                 ip->a.outval, ip->a.units, ip->resistivity.outval, ip->resistivity.units);
 
         fprintf(file,
-                "\n- Calculations limitations are listed below, with inputs outside these limitations being more error prone due to extrapolation,\n"
+                "\n- Calculations limitations are listed below, with"
+                "\n  inputs outside these limitations being more"
+                "\n  error prone due to extrapolation,\n\n"
                 "\t+ Currents up to 35 A external and 17.5 A internal. \n"
                 "\t+ Temperature rises from 10 C to 100 C.\n"
                 "\t+ Trace widths between 0 and 10.16mm.\n"
@@ -1159,10 +1182,8 @@ int output_results_IPC2221(ip_t* restrict ip, op_t* restrict op, FILE* file)
                 "\t+ No vias along the length of the trace.\n");
     }
 
-    fprintf(file,
-            "\n- TWC used the %s standard, derived from https://circuitcalculator.com/wordpress/2006/01/31/pcb-trace-width-calculator/.\n", ip->standard.str);
-
-    fprintf(file, DISCLAIMER_STR);
+    print_credits_string(file, ip->standard.str, "\0", LINK_CIRCUIT_CALCULATOR, ip->no_colour_flag);
+    print_disclaimer_string(file, ip->no_colour_flag);
 
     return EXIT_SUCCESS;
 }
@@ -1171,17 +1192,19 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
     fprintf(file, file == stdout ? "\n" : '\0');
 
-    fprintf(file, ip->note[0] == '\0' ? '\0' : "Note:\n%s\n\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? '\0' : "%s\n%s\n\n",
+            get_text_ansi_colours("NOTE:", 30, 47, ip->no_colour_flag),
+            ip->note);
 
     fprintf(file,
             "\t\t%s\n"
-            "Current:\t\t%*.*lf [%s]\n"
-            "Copper Weight:\t\t%*.*lf [%s]\n"
-            "Temperature, Rise:\t%*.*lf [%s]\n"
-            "Trace Length:\t\t%*.*lf [%s]\n"
-            "PCB Thickness:\t\t%*.*lf [%s]\n"
-            "Plane Distance:\t\t%*.*lf [%s]\n"
-            "PCB Thermal Cond.:\t%*.*lf [%s]\n",
+            "Current:................%*.*lf [%s]\n"
+            "Copper Weight:..........%*.*lf [%s]\n"
+            "Temperature, Rise:......%*.*lf [%s]\n"
+            "Trace Length:...........%*.*lf [%s]\n"
+            "PCB Thickness:..........%*.*lf [%s]\n"
+            "Plane Distance:.........%*.*lf [%s]\n"
+            "PCB Thermal Cond.:......%*.*lf [%s]\n",
             get_text_ansi_colours("-INPUTS-", 30, 47, ip->no_colour_flag), 
             ip->width, ip->precision, ip->current.outval, ip->current.units,
             ip->width, ip->precision, ip->copper_weight.outval, ip->copper_weight.units,
@@ -1193,10 +1216,10 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
     fprintf(file,
             "\n\t\t%s\n"
-            "Area:\t\t\t%*.*lf [%s]\n"
-            "Corrected Area:\t\t%*.*lf [%s]\n\n"
-            "Width:\t\t\t%*.*lf [%s]\n"
-            "Corrected Width:\t%*.*lf [%s]\n",
+            "Area:...................%*.*lf [%s]\n"
+            "Corrected Area:.........%*.*lf [%s]\n\n"
+            "Width:..................%*.*lf [%s]\n"
+            "Corrected Width:........%*.*lf [%s]\n",
             get_text_ansi_colours("-OUTPUTS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, op->layer.cs_area.val, op->layer.cs_area.units,
             ip->width, ip->precision, op->layer.corr_cs_area.val, op->layer.corr_cs_area.units,
@@ -1206,19 +1229,20 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
     fprintf(file,
             ip->trace_length.val > 0 ?
             "\n"
-            "Resistance:\t\t%*.*lf [Ohm]\n"
-            "Voltage Drop:\t\t%*.*lf [V]\n"
-            "Power Loss:\t\t%*.*lf [W]\n" : "\nOptionally specify length for V/I/P calculations.\n",
+            "Resistance:.............%*.*lf [Ohm]\n"
+            "Voltage Drop:...........%*.*lf [V]\n"
+            "Power Loss:.............%*.*lf [W]\n"
+            : "\nOptionally specify length for V/I/P calculations.\n",
             ip->width, ip->precision, op->layer.resistance.val,
             ip->width, ip->precision, op->layer.voltage_drop.val,
             ip->width, ip->precision, op->layer.power_loss.val);
 
     fprintf(file,
             "\n\t   %s\n"
-            "Copper Weight CF:\t%*.*lf [units]\n"
-            "PCB Thickness CF:\t%*.*lf [units]\n"
-            "PCB Thermal Cond. CF:\t%*.*lf [units]\n"
-            "Plane Distance CF:\t%*.*lf [units]\n",
+            "Copper Weight CF:.......%*.*lf [units]\n"
+            "PCB Thickness CF:.......%*.*lf [units]\n"
+            "PCB Thermal Cond. CF:...%*.*lf [units]\n"
+            "Plane Distance CF:......%*.*lf [units]\n",
             get_text_ansi_colours("-CORRECTION FACTORS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, ip->cf.copper_weight,
             ip->width, ip->precision, ip->cf.pcb_thickness,
@@ -1239,10 +1263,8 @@ int output_results_IPC2152_A(ip_t* restrict ip, op_t* restrict op, FILE* file)
                 ip->a.outval, ip->a.units, ip->resistivity.outval, ip->resistivity.units);
     }
 
-    fprintf(file,
-            "\n- TWC used the %s standard, Method %c, derived from https://ninjacalc.mbedded.ninja/calculators/electronics/pcb-design/track-current-ipc2152.\n", ip->standard.str, ip->method);
-
-    fprintf(file, DISCLAIMER_STR);
+    print_credits_string(file, ip->standard.str, ip->method, LINK_NINJA_CALC, ip->no_colour_flag);
+    print_disclaimer_string(file, ip->no_colour_flag);
 
     return EXIT_SUCCESS;
 }
@@ -1251,17 +1273,19 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
     fprintf(file, file == stdout ? "\n" : '\0');
 
-    fprintf(file, ip->note[0] == '\0' ? '\0' : "Note:\n%s\n\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? '\0' : "%s\n%s\n\n",
+            get_text_ansi_colours("NOTE:", 30, 47, ip->no_colour_flag),
+            ip->note);
 
     fprintf(file,
             "\t\t%s\n"
-            "Current:\t\t%*.*lf [%s]\n"
-            "Copper Weight:\t\t%*.*lf [%s]\n"
-            "Temperature, Rise:\t%*.*lf [%s]\n"
-            "Trace Length:\t\t%*.*lf [%s]\n"
-            "PCB Thickness:\t\t%*.*lf [%s]\n"
-            "Plane Distance:\t\t%*.*lf [%s]\n"
-            "Plane Area:\t\t%*.*lf [%s]\n",
+            "Current:................%*.*lf [%s]\n"
+            "Copper Weight:..........%*.*lf [%s]\n"
+            "Temperature, Rise:......%*.*lf [%s]\n"
+            "Trace Length:...........%*.*lf [%s]\n"
+            "PCB Thickness:..........%*.*lf [%s]\n"
+            "Plane Distance:.........%*.*lf [%s]\n"
+            "Plane Area:.............%*.*lf [%s]\n",
             get_text_ansi_colours("-INPUTS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, ip->current.outval, ip->current.units,
             ip->width, ip->precision, ip->copper_weight.outval, ip->copper_weight.units,
@@ -1273,10 +1297,10 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
     fprintf(file,
             "\n\t\t%s\n"
-            "Area:\t\t\t%*.*lf [%s]\n"
-            "Corrected Area:\t%*.*lf [%s]\n\n"
-            "Width:\t\t\t%*.*lf [%s]\n"
-            "Corrected Width:\t%*.*lf [%s]\n\n",
+            "Area:...................%*.*lf [%s]\n"
+            "Corrected Area:.........%*.*lf [%s]\n\n"
+            "Width:..................%*.*lf [%s]\n"
+            "Corrected Width:........%*.*lf [%s]\n\n",
             get_text_ansi_colours("-OUTPUTS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, op->layer.cs_area.val, op->layer.cs_area.units,
             ip->width, ip->precision, op->layer.corr_cs_area.val, op->layer.corr_cs_area.units,
@@ -1285,20 +1309,21 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
     fprintf(file,
             ip->trace_length.val > 0 ?
-            "Resistance:\t\t%*.*lf [Ohm]\n"
-            "Voltage Drop:\t\t%*.*lf [V]\n"
-            "Power Loss:\t\t%*.*lf [W]\n" : "\nOptionally specify length for V/I/P calculations.\n",
+            "Resistance:.............%*.*lf [Ohm]\n"
+            "Voltage Drop:...........%*.*lf [V]\n"
+            "Power Loss:.............%*.*lf [W]\n"
+            : "\nOptionally specify length for V/I/P calculations.\n",
             ip->width, ip->precision, op->layer.resistance.val,
             ip->width, ip->precision, op->layer.voltage_drop.val,
             ip->width, ip->precision, op->layer.power_loss.val);
 
     fprintf(file,
             "\n\t   %s\n"
-            "Copper Weight CF:\t%*.*lf [units]\n"
-            "PCB Thickness CF:\t%*.*lf [units]\n"
-            "Plane Area CF:\t %*.*lf [units]\n"
-            "Plane Distance CF:\t%*.*lf [units]\n"
-            "Temperature Rise CF:\t%*.*lf [units]\n",
+            "Copper Weight CF:.......%*.*lf [units]\n"
+            "PCB Thickness CF:.......%*.*lf [units]\n"
+            "Plane Area CF:..........%*.*lf [units]\n"
+            "Plane Distance CF:......%*.*lf [units]\n"
+            "Temperature Rise CF:....%*.*lf [units]\n",
             get_text_ansi_colours("-CORRECTION FACTORS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, ip->cf.copper_weight,
             ip->width, ip->precision, ip->cf.pcb_thickness,
@@ -1306,11 +1331,11 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
             ip->width, ip->precision, ip->cf.plane_distance,
             ip->width, ip->precision, ip->cf.temp_rise);
 
-    fprintf(file, 
-            "\n\t\t%s",
-            get_text_ansi_colours("-APPENDIX-", 30, 47, ip->no_colour_flag));
-
     if (!(ip->quiet_flag)) {
+        fprintf(file, 
+                "\n\t\t%s",
+                get_text_ansi_colours("-APPENDIX-", 30, 47, ip->no_colour_flag));
+
         fprintf(file, ip->trace_length.val == 0 ?
                 '\0' :
                 "\n- Constants used for the P/I/V calculations were,\n\n"
@@ -1319,10 +1344,8 @@ int output_results_IPC2152_B(ip_t* restrict ip, op_t* restrict op, FILE* file)
                 ip->a.outval, ip->a.units, ip->resistivity.outval, ip->resistivity.units);
     }
 
-    fprintf(file,
-            "\n- TWC used the %s standard, Method %c, derived from https://www.smps.us/pcb-calculator.html.\n", ip->standard.str, ip->method);
-
-    fprintf(file, DISCLAIMER_STR);
+    print_credits_string(file, ip->standard.str, ip->method, LINK_SMPS, ip->no_colour_flag);
+    print_disclaimer_string(file, ip->no_colour_flag);
 
     return EXIT_SUCCESS;
 }
@@ -1331,15 +1354,17 @@ int output_results_IPC2152_C(ip_t* restrict ip, op_t* restrict op, FILE* file)
 {
     fprintf(file, file == stdout ? "\n" : '\0');
 
-    fprintf(file, ip->note[0] == '\0' ? '\0' : "Note:\n%s\n\n", ip->note);
+    fprintf(file, ip->note[0] == '\0' ? '\0' : "%s\n%s\n\n",
+            get_text_ansi_colours("NOTE:", 30, 47, ip->no_colour_flag),
+            ip->note);
 
     fprintf(file,
             "\t\t%s\n"
-            "Current:\t\t%*.*lf [%s]\n"
-            "Copper Weight:\t\t%*.*lf [%s]\n"
-            "Temperature, Rise:\t%*.*lf\t[%s]\n"
-            "Temperature, Ambient:\t%*.*lf [%s]\n"
-            "Trace Length:\t\t%*.*lf [%s]\n",
+            "Current:................%*.*lf [%s]\n"
+            "Copper Weight:..........%*.*lf [%s]\n"
+            "Temperature, Rise:......%*.*lf [%s]\n"
+            "Temperature, Ambient:...%*.*lf [%s]\n"
+            "Trace Length:...........%*.*lf [%s]\n",
             get_text_ansi_colours("-INPUTS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, ip->current.outval, ip->current.units,
             ip->width, ip->precision, ip->copper_weight.outval, ip->copper_weight.units,
@@ -1349,34 +1374,36 @@ int output_results_IPC2152_C(ip_t* restrict ip, op_t* restrict op, FILE* file)
 
     fprintf(file,
             "\n\t    %s\n"
-            "Area:\t\t\t%*.*lf [%s]\n"
-            "Width:\t\t\t%*.*lf [%s]\n",
+            "Area:...................%*.*lf [%s]\n"
+            "Width:..................%*.*lf [%s]\n",
             get_text_ansi_colours("-EXTERNAL LAYERS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, op->extl.cs_area.val, op->extl.cs_area.units,
             ip->width, ip->precision, op->extl.trace_width.val, op->extl.trace_width.units);
 
     fprintf(file,
             ip->trace_length.val > 0 ?
-            "Resistance:\t\t%*.*lf [Ohm]\n"
-            "Voltage Drop:\t\t%*.*lf [V]\n"
-            "Power Loss:\t\t%*.*lf [W]\n" : "\r",
+            "Resistance:.............%*.*lf [Ohm]\n"
+            "Voltage Drop:...........%*.*lf [V]\n"
+            "Power Loss:.............%*.*lf [W]\n"
+            : "\r",
             ip->width, ip->precision, op->extl.resistance.val,
             ip->width, ip->precision, op->extl.voltage_drop.val,
             ip->width, ip->precision, op->extl.power_loss.val);
 
     fprintf(file,
             "\n\t    %s\n"
-            "Area: \t\t\t%*.*lf [%s]\n"
-            "Width:\t\t\t%*.*lf [%s]\n",
+            "Area:...................%*.*lf [%s]\n"
+            "Width:..................%*.*lf [%s]\n",
             get_text_ansi_colours("-INTERNAL LAYERS-", 30, 47, ip->no_colour_flag),
             ip->width, ip->precision, op->intl.cs_area.val, op->intl.cs_area.units,
             ip->width, ip->precision, op->intl.trace_width.val, op->intl.trace_width.units);
 
     fprintf(file,
             ip->trace_length.val > 0 ?
-            "Resistance:\t\t%*.*lf [Ohm]\n"
-            "Voltage Drop:\t\t%*.*lf [V]\n"
-            "Power Loss:\t\t%*.*lf [W]\n" : "\nOptionally specify length for V/I/P calculations.\n",
+            "Resistance:.............%*.*lf [Ohm]\n"
+            "Voltage Drop:...........%*.*lf [V]\n"
+            "Power Loss:.............%*.*lf [W]\n"
+            : "\nOptionally specify length for V/I/P calculations.\n",
             ip->width, ip->precision, op->intl.resistance.val,
             ip->width, ip->precision, op->intl.voltage_drop.val,
             ip->width, ip->precision, op->intl.power_loss.val);
@@ -1394,10 +1421,8 @@ int output_results_IPC2152_C(ip_t* restrict ip, op_t* restrict op, FILE* file)
             ip->a.outval, ip->a.units, ip->resistivity.outval, ip->resistivity.units);
     }
 
-    fprintf(file,
-            "\n- TWC used the %s standard, Method %c, derived from https://twcalculator.app.protoexpress.com/.\n", ip->standard.str, ip->method);
-
-    fprintf(file, DISCLAIMER_STR);
+    print_credits_string(file, ip->standard.str, ip->method, LINK_SIERRA_CIRCUITS, ip->no_colour_flag);
+    print_disclaimer_string(file, ip->no_colour_flag);
 
     return EXIT_SUCCESS;
 }
@@ -1435,7 +1460,7 @@ int output_help()
             "\n\t-o,\t--output <File Name>\t\t\t\t= Write the name of the outputted file. Use '.txt' to create a text file. Use a single '.' to auto-generate\n\t\t\t\t\t\t\t\t  the name based on date/time. Can also write the full path to the file, e.g. 'C:/Users/user/output.txt'\n\t\t\t\t\t\t\t\t  or stop at 'C:/Users/user/' to use the auto-generated file name.\n"
             "\n\t-m, \t--metric\t\t\t\t\t= Make the output units be metric.\n"
             "\n\t-i, \t--imperial\t\t\t\t\t= Make the output units be imperial. Default behaviour, therefore just implemented for completion.\n"
-            "\n\t-q, \t--quiet\t\t\t\t\t\t= Remove the appendix from the output. Credits and disclaimer cannot be removed.\n"
+            "\n\t-q, \t--quiet\t\t\t\t\t\t= Remove the appendix from the output. Credits and disclaimer are not removed.\n"
             "\n\t-x, \t--no-colour\t\t\t\t\t= Remove the colour ANSI escape codes from the output.\n"
             "\n\t\t--precision <Decimal Amount>\t\t\t= Specify default decimal precision amount. Default is 5.\n"
             "\n\n\t\t\tCONVERSIONS\n"
