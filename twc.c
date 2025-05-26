@@ -23,49 +23,49 @@ void set_universal_defaults(ip_t* restrict ip)
 
     ip->current.outval = 0;
     ip->current.val = 0;
-    ip->current.units = "N/A";
+    strcpy(ip->current.units, "N/A");
 
     ip->copper_weight.outval = 0;
     ip->copper_weight.val = 0;
-    ip->copper_weight.units = "N/A";
+    strcpy(ip->copper_weight.units, "N/A");
 
     ip->temp_rise.outval = 10;
     ip->temp_rise.val = 10;
-    ip->temp_rise.units = "C";
+    strcpy(ip->temp_rise.units, "C");
 
     ip->trace_length.outval = 0;
     ip->trace_length.val = 0;
-    ip->trace_length.units = "N/A";
+    strcpy(ip->trace_length.units, "N/A");
 
     ip->resistivity.outval = 1.72e-8; // Annealed copper
     ip->resistivity.val = 1.72e-8;
-    ip->resistivity.units = "Ohm m";
+    strcpy(ip->resistivity.units, "Ohm m");
 
     ip->a.outval = 0.00393; // Annealed copper
     ip->a.val = 0.00393;
-    ip->a.units = "1/C";
+    strcpy(ip->a.units, "1/C");
 }
 
 void set_defv_IPC2221(ip_t* restrict ip)
 {
     ip->temp_ambient.outval = 25;
     ip->temp_ambient.val = 25;
-    ip->temp_ambient.units = "C";
+    strcpy(ip->temp_ambient.units, "C");
 }
 
 void set_defv_IPC2152_A(ip_t* restrict ip)
 {
     ip->plane_distance.outval = 0;
     ip->plane_distance.val = 0;
-    ip->plane_distance.units = "N/A";
+    strcpy(ip->plane_distance.units, "N/A");
 
     ip->pcb_thermal_cond.outval = 0.20;
     ip->pcb_thermal_cond.val = CONV_WmK_TO_BTUhftF(0.20);
-    ip->pcb_thermal_cond.units = "W/mK";
+    strcpy(ip->pcb_thermal_cond.units, "W/mK");
 
     ip->pcb_thickness.outval = 1.6;
     ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
-    ip->pcb_thickness.units = "mm";
+    strcpy(ip->pcb_thickness.units, "mm");
 
     /* Set modifier defaults */
     ip->cf.copper_weight = 0;
@@ -78,15 +78,15 @@ void set_defv_IPC2152_B(ip_t* restrict ip)
 {
     ip->plane_area.outval = 0;
     ip->plane_area.val = 0;
-    ip->plane_area.units = "N/A";
+    strcpy(ip->plane_area.units, "N/A");
 
     ip->plane_distance.outval = 0;
     ip->plane_distance.val = 0;
-    ip->plane_distance.units = "N/A";
+    strcpy(ip->plane_distance.units, "N/A");
 
     ip->pcb_thickness.outval = 1.6;
     ip->pcb_thickness.val = CONV_M_TO_MIL(1.6 * 1e-3);
-    ip->pcb_thickness.units = "mm";
+    strcpy(ip->pcb_thickness.units, "mm");
 
     /* Set modifier defaults */
     ip->cf.copper_weight = 1;
@@ -100,13 +100,17 @@ void set_defv_IPC2152_C(ip_t* restrict ip)
 {
     ip->temp_ambient.outval = 25;
     ip->temp_ambient.val = 25;
-    ip->temp_ambient.units = "C";
+    strcpy(ip->temp_ambient.units, "C");
 }
 
 int get_options(int argc, char** restrict argv, ip_t* restrict ip)
 {
     double val = 0.0f; /* Temporary value to store the argument */
-    dbl_t conversion = {0}; /* Store the conversion */
+    dbl_t conversion = {
+        .val = 0,
+        .outval = 0,
+        .units = "N/A",
+    }; /* Used to store the conversion */
 
     if (argc == 1) {
         printf(WELCOME_STR);
@@ -532,7 +536,6 @@ int assign_values_units_metric(dbl_t* ip_dbl, char* optstring, char SI_derived_u
 
     CHECK_LIMITS(outval);
 
-    ip_dbl->units = malloc(3 * sizeof(char));
     switch(ret) {
         case 1:
             sprintf(ip_dbl->units, "%c",  SI_derived_units);
@@ -595,7 +598,6 @@ int assign_values_units_metric_area(dbl_t* ip_dbl, char* optstring, char SI_deri
 
     CHECK_LIMITS(outval);
 
-    ip_dbl->units = malloc(5 * sizeof(char));
     switch(ret) {
         case 2:
             sprintf(ip_dbl->units, "%c%c^2", SI_prefix, SI_derived_units);
@@ -619,7 +621,7 @@ int assign_values_units_imperial(dbl_t* ip_dbl, char* optstring, char* units)
     CHECK_LIMITS(val);
     ip_dbl->outval = val;
     ip_dbl->val = val;
-    ip_dbl->units = units;
+    strncpy(ip_dbl->units, units, MAX_UNITS_STR - 1);
 
     return 0;
 }
@@ -950,21 +952,21 @@ int set_outu_IPC2221(ip_t* restrict ip, op_t* restrict op)
 {
     switch (ip->uflag) {
         case 'm':
-            op->extl.cs_area.units = "mm^2";
+            strcpy(op->extl.cs_area.units, "mm^2");
             op->extl.cs_area.val = CONV_MIL2_TO_MM2(op->extl.cs_area.val);
-            op->extl.trace_width.units = "mm";
+            strcpy(op->extl.trace_width.units, "mm");
             op->extl.trace_width.val = CONV_MIL_TO_MM(op->extl.trace_width.val);
 
-            op->intl.cs_area.units = "mm^2";
+            strcpy(op->intl.cs_area.units, "mm^2");
             op->intl.cs_area.val = CONV_MIL2_TO_MM2(op->intl.cs_area.val);
-            op->intl.trace_width.units = "mm";
+            strcpy(op->intl.trace_width.units, "mm");
             op->intl.trace_width.val = CONV_MIL_TO_MM(op->intl.trace_width.val);
             break;
         case 'i':
-            op->extl.cs_area.units = "mil^2";
-            op->extl.trace_width.units = "mil";
-            op->intl.cs_area.units = "mil^2";
-            op->intl.trace_width.units = "mil";
+            strcpy(op->extl.cs_area.units, "mil^2");
+            strcpy(op->extl.trace_width.units, "mil");
+            strcpy(op->intl.cs_area.units, "mil^2");
+            strcpy(op->intl.trace_width.units, "mil");
             break;
         default:
             fprintf(stderr, "\nShould be impossible to reach this condition...\n");
@@ -979,20 +981,20 @@ int set_outu_IPC2152_A(ip_t* restrict ip, op_t* restrict op)
 {
     switch (ip->uflag) {
         case 'm':
-            op->layer.cs_area.units = "mm^2";
+            strcpy(op->layer.cs_area.units, "mm^2");
             op->layer.cs_area.val = CONV_MIL2_TO_MM2(op->layer.cs_area.val);
-            op->layer.trace_width.units = "mm";
+            strcpy(op->layer.trace_width.units, "mm");
             op->layer.trace_width.val = CONV_MIL_TO_MM(op->layer.trace_width.val);
-            op->layer.corr_cs_area.units = "mm^2";
+            strcpy(op->layer.corr_cs_area.units, "mm^2");
             op->layer.corr_cs_area.val = CONV_MIL2_TO_MM2(op->layer.corr_cs_area.val);
-            op->layer.corr_trace_width.units = "mm";
+            strcpy(op->layer.corr_trace_width.units, "mm");
             op->layer.corr_trace_width.val = CONV_MIL_TO_MM(op->layer.corr_trace_width.val);
             break;
         case 'i':
-            op->layer.cs_area.units = "mil^2";
-            op->layer.trace_width.units = "mil";
-            op->layer.corr_cs_area.units = "mil^2";
-            op->layer.corr_trace_width.units = "mil";
+            strcpy(op->layer.cs_area.units, "mil^2");
+            strcpy(op->layer.trace_width.units, "mil");
+            strcpy(op->layer.corr_cs_area.units, "mil^2");
+            strcpy(op->layer.corr_trace_width.units, "mil");
             break;
         default:
             fprintf(stderr, "\nShould be impossible to reach this condition...\n");
@@ -1007,20 +1009,20 @@ int set_outu_IPC2152_B(ip_t* restrict ip, op_t* restrict op)
 {
     switch (ip->uflag) {
         case 'm':
-            op->layer.cs_area.units = "mm^2";
+            strcpy(op->layer.cs_area.units, "mm^2");
             op->layer.cs_area.val = CONV_MIL2_TO_MM2(op->layer.cs_area.val);
-            op->layer.trace_width.units = "mm";
+            strcpy(op->layer.trace_width.units, "mm");
             op->layer.trace_width.val = CONV_MIL_TO_MM(op->layer.trace_width.val);
-            op->layer.corr_cs_area.units = "mm^2";
+            strcpy(op->layer.corr_cs_area.units, "mm^2");
             op->layer.corr_cs_area.val = CONV_MIL2_TO_MM2(op->layer.corr_cs_area.val);
-            op->layer.corr_trace_width.units = "mm";
+            strcpy(op->layer.corr_trace_width.units, "mm");
             op->layer.corr_trace_width.val = CONV_MIL_TO_MM(op->layer.corr_trace_width.val);
             break;
         case 'i':
-            op->layer.cs_area.units = "mil^2";
-            op->layer.trace_width.units = "mil";
-            op->layer.corr_cs_area.units = "mil^2";
-            op->layer.corr_trace_width.units = "mil";
+            strcpy(op->layer.cs_area.units, "mil^2");
+            strcpy(op->layer.trace_width.units, "mil");
+            strcpy(op->layer.corr_cs_area.units, "mil^2");
+            strcpy(op->layer.corr_trace_width.units, "mil");
             break;
         default:
             fprintf(stderr, "\nShould be impossible to reach this condition...\n");
@@ -1035,21 +1037,20 @@ int set_outu_IPC2152_C(ip_t* restrict ip, op_t* restrict op)
 {
     switch (ip->uflag) {
         case 'm':
-            op->extl.cs_area.units = "mm^2";
+            strcpy(op->extl.cs_area.units, "mm^2");
             op->extl.cs_area.val = CONV_MIL2_TO_MM2(op->extl.cs_area.val);
-            op->extl.trace_width.units = "mm";
+            strcpy(op->extl.trace_width.units, "mm");
             op->extl.trace_width.val = CONV_MIL_TO_MM(op->extl.trace_width.val);
 
-            op->intl.cs_area.units = "mm^2";
+            strcpy(op->intl.cs_area.units, "mm^2");
             op->intl.cs_area.val = CONV_MIL2_TO_MM2(op->intl.cs_area.val);
-            op->intl.trace_width.units = "mm";
-            op->intl.trace_width.val = CONV_MIL_TO_MM(op->intl.trace_width.val);
+            strcpy(op->intl.trace_width.units, "mm"); op->intl.trace_width.val = CONV_MIL_TO_MM(op->intl.trace_width.val);
             break;
         case 'i':
-            op->extl.cs_area.units = "mil^2";
-            op->extl.trace_width.units = "mil";
-            op->intl.cs_area.units = "mil^2";
-            op->intl.trace_width.units = "mil";
+            strcpy(op->extl.cs_area.units, "mil^2");
+            strcpy(op->extl.trace_width.units, "mil");
+            strcpy(op->intl.cs_area.units, "mil^2");
+            strcpy(op->intl.trace_width.units, "mil");
             break;
         default:
             fprintf(stderr, "\nShould be impossible to reach this condition...\n");

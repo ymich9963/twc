@@ -17,9 +17,10 @@
 
 /* Constants */
 #define MAX_NOTE_CHAR_COUNT 301
+#define MAX_UNITS_STR 7
 #define	k_INT 0.024f
 #define	k_EXT 0.048f
-#define	VAL_MAX 999999999.999999999f
+#define	VAL_MAX 9999.999999999999999f
 #define	VAL_MIN 0.0f
 #define	STD_NAME_LEN 8
 #define	METHOD_STR_LEN 2
@@ -102,7 +103,7 @@
 typedef struct Dbl {
 	double val;
 	double outval;
-	char* units;
+	char units[MAX_UNITS_STR];
 } dbl_t; /* Struct for inputs of type double */
 
 typedef struct Std {
