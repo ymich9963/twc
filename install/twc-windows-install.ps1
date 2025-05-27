@@ -1,5 +1,5 @@
 $TWC_install_path = 'C:\Program Files\twc'
-$TWC_exe_link = "https://github.com/ymich9963/twc/releases/download/v1.1.1/twc.exe"
+$TWC_exe_link = "https://github.com/ymich9963/twc/releases/download/v1.2.0/twc.exe"
 
 if (Test-Path -Path $TWC_install_path) {
     Write-Output "Removing previously installed executable."
