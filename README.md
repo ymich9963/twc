@@ -1,9 +1,5 @@
 # Trace Width Calculator (TWC)
-![badge](https://badgen.net/badge/Coverage/100/blue) 
-<a href="https://scan.coverity.com/projects/ymich9963-twc">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/31168/badge.svg"/>
-</a>
+![badge](https://badgen.net/badge/Coverage/100/blue) ![coverity](https://scan.coverity.com/projects/ymich9963-twc) 
 
 A CLI calculator tool used to assist designing rigid PCB traces. Implements both the IPC2221 and IPC2152 standards and has the ability to choose between the two, with the latter having three methods available. Each method used for the standards was derived from one of the various websites that claim to implement an trace width calculator. More information regarding certain formulas used are under `docs/`.
 
