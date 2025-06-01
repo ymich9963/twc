@@ -145,7 +145,6 @@ Help option for the Trace Width Calculator (TWC). Use '--version' to get the ver
         -r-F,   --temperature-ambient-F
 
         -l,     --trace--length <Trace Length [m]>              = Input the trace length in centimeters. Use the other options below for imperial units.
-        -l,     --trace--length-mm
         -l-mil, --trace--length-mil
         -l-in,  --trace--length-inches
 
