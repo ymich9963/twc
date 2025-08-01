@@ -6,7 +6,7 @@ if (Test-Path -Path $TWC_install_path) {
     Remove-Item $TWC_install_path -r # rm command
 }
 
-mkdir $TWC_install_path 
+New-Item -Path $TWC_install_path -ItemType Directory | Out-Null # make new dir and suppress output
 curl -fsSLO $TWC_exe_link
 Move-Item twc.exe $TWC_install_path # mv command
 Write-Output "Downloaded executable." # echo command
