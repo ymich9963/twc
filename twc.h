@@ -6,6 +6,8 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#pragma once
+
 #include <stdlib.h>
 #include <limits.h>
 #include <stdio.h>
