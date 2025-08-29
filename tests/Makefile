@@ -17,7 +17,7 @@ endif
 .DELETE_ON_ERROR:
 
 CC := clang 
-test: CFLAGS := -Wall  -I$(SRC_DIR) -I$(UNITY_DIR) -I$(TEST_DIR) -O3
+tests: CFLAGS := -Wall  -I$(SRC_DIR) -I$(UNITY_DIR) -I$(TEST_DIR) -O3
 coverage: CFLAGS := -Wall  -I$(SRC_DIR) -I$(UNITY_DIR) -I$(TEST_DIR) -O3 --coverage
 
 TEST_OBJ = $(patsubst Test%.c,Test%.o, $(wildcard *.c))
@@ -30,8 +30,8 @@ PASSED = grep -s :PASS $(RESULTS_DIR)*.txt || echo ""
 FAIL = grep -s :FAIL $(RESULTS_DIR)*.txt || echo ""
 IGNORE = grep -s :IGNORE $(RESULTS_DIR)*.txt || echo ""
 
-.PHONY: test clean coverage
-test: $(RESULTS)
+.PHONY: tests clean coverage
+tests: $(RESULTS)
 	echo $(RESULTS)
 	echo -----------------------
 	echo IGNORES:

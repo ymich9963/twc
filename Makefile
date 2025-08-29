@@ -1,43 +1,35 @@
-OBJECTS := twc.o main.o
-BUILD_DIR := ./build
 TARGET := twc
+BUILD_DIR := ./build
+OBJECTS := main.o $(TARGET).o
 CFLAGS := -Wall -O3
+LIB := -lsndfile
 CC := clang
-
-ifndef VERBOSE
-.SILENT:
-endif
-
 .DELETE_ON_ERROR:
+.SILENT:
 
-.PHONY: all
+.PHONY: all clean tests coverage
+
 all: $(OBJECTS)
-	cd $(BUILD_DIR); \
-	$(CC) $^ -o $(TARGET) $(CFLAGS);
+	$(CC) -o $(BUILD_DIR)/$(TARGET) $(foreach obj, $(OBJECTS), $(BUILD_DIR)/$(obj)) $(CFLAGS) $(LIB);
 	echo "Executable compiled with $(CC) $(CFLAGS)"
 
 $(OBJECTS): %.o: %.c build
-	cd $(BUILD_DIR); \
-	$(CC) ../$< -c -I. $(CFLAGS);
+	$(CC) -c $< -o $(BUILD_DIR)/$@ -I. $(CFLAGS);
 	echo "$@ compiled with $<"
 
 build:
 	mkdir $(BUILD_DIR)
 	echo "Created /build in" `pwd` 
 
-.PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR)
 	echo "Project /build cleaned."
 
-.PHONY: test
-test:: 
+tests:: 
 	echo "Running tests..."
-	cd ./test; \
-	$(MAKE) test;
+	cd ./tests; \
+	$(MAKE) tests;
 
-.PHONY: coverage 
 coverage: 
 	echo "Running coverage..."
-	cd ./test; \
-	$(MAKE) coverage;
+	$(MAKE) coverage -C ./tests
